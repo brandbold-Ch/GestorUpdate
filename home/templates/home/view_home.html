@@ -1,0 +1,154 @@
+{% load static %}
+
+<!doctype html>
+<html lang="es">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200;600&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/ionicons@4.2.2/dist/css/ionicons.min.css" rel="stylesheet">
+    <link rel="icon" href=" {% static 'home/img/icon.gif' %}">
+    <link rel="stylesheet" href="{% static 'home/css/style.css' %}">
+    <title>Inicio</title>
+    <style>
+        .btn-pulse {
+  display: inline-block;
+  padding: 0.5em 1.2em;
+  margin: 1em;
+  background-color: #007bff;
+  border: none;
+  border-radius: 0.3em;
+  color: white;
+  font-size: 1.2em;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.8);
+  animation: pulse 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+}
+
+.btn-pulse:hover {
+  animation-play-state: paused;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.8);
+  }
+
+  70% {
+    transform: scale(1.3);
+    box-shadow: 0 0 0 10px rgba(0, 123, 255, 0);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 123, 255, 0);
+  }
+}
+
+    </style>
+</head>
+<body>
+
+
+<section>
+    <div class="row no-gutters">
+        <div class="col-lg-1 border-right d-none d-lg-block">
+            <div class="d-flex h-100">
+                <div class="align-self-center mx-auto">
+                    <i class="icon ion-md-search lead-xl"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-11">
+            <nav class="navbar navbar-expand-lg ">
+                <a class="navbar-brand text-light" href="#">Universidad Plitecnica <span class="font-weight-bold"> de Tapachula</span></a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse"
+                        data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <i class="icon ion-md-menu lead-xl text-light"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav ml-auto">
+                        <li class="nav-item active">
+                            <a class="nav-link text-light lead" href="{% url 'alumnos_login' %}">Alumnos</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light lead" href="{% url 'administradores_login' %}">Administrador</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light lead" href="{% url 'maestros_login' %}">Maestros</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light lead" href="{% url 'directivos_login' %}">Directivos</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light lead" href="mailto:contacto@uptapachula.edu.mx">Gmail</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light lead"
+                               href="https://api.whatsapp.com/send?phone=5219622107829&&text=hola&#33 en cuanto estemos diponibles te contactaremos&#33 gracias">Contactanos</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light lead-xl" href="#"><i class="icon ion-md-menu"></i></a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </div>
+    <div class="row no-gutters">
+        <div class="col-lg-1 d-none d-lg-block border-right">
+            <div class="d-flex">
+                <ul class="list-unstyled align-self-center mx-auto">
+                    <li class="sideways"><a href="https://twitter.com/UPTapachula?t=Chs0qkITKkvOhx0e9jFhKA&s=09"
+                                            class="text-light" target="_blank">Twitter</a></li>
+                    <li class="sideways"><a href="https://www.instagram.com/uptapachula/" class="text-light"
+                                            target="_blank">Instagram</a></li>
+                    <li class="sideways"><a
+                            href="https://www.facebook.com/pages/Universidad-Politecnica-De-Tapachula/735824489796123"
+                            class="text-light" target="_blank">Facebook</a></li>
+                    <li class="sideways"><a href="https://www.youtube.com/@universidadpolitecnicadeta883"
+                                            class="text-light" target="_blank">Youtube</a></li>
+                    <li class="sideways"><a href="http://uptapachula.edu.mx/" target="_blank" class="text-light">Pagina
+                        oficial</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-lg-4 d-flex">
+            <div class="container align-self-center px-5 content">
+                <h1 class="text-uppercase font-weight-bold mb-4">Solicita tu credencial ya&#33</h1>
+                <p class="lead-xl mb-4">Es de util importancia el tener tu credencial solicitada en caso de cualquier
+                    cosa será util&#33</p>
+                <a href="{% url 'alumnos_login' %}" class="btn btn-primary btn-pulse">Iniciar sesión!</a>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <img src="{% static 'home/img/banner.png' %}" class="img-fluid" alt="">
+        </div>
+    </div>
+</section>
+
+<!-- Optional JavaScript -->
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+</body>
+</html>

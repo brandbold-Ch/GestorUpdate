@@ -1,0 +1,121 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'administradores/crear/css/style.css' %}">
+    <title>Formulario</title>
+</head>
+<body class="container bg-dark">
+<div text-align="left">
+    <img class="img-fluid mx-auto d-block" src="{% static 'administradores/crear/img/Imagen1.png' %}" alt="">
+    <div class="p-3 mb-2 bg-transparent text-body">
+        <div align="center">
+            <h6 class="text-white">&#34 Innovación y Tecnología al servicio de la Sociedad &#34</h6>
+        </div>
+    </div>
+</div>
+<form method="post" class="row g-3 mt-3 " enctype="multipart/form-data">
+
+    {% csrf_token %}
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+
+    {% else  %}
+        {% if mensaje %}
+            <div class="alert alert-success" role="alert">
+                {{ mensaje }}
+            </div>
+        {% endif %}
+    {% endif %}
+
+    {% if success  %}
+        <div class="alert alert-success" role="alert">
+            {{ success }} <a href="{% url 'administradores_login' %}">iniciar sesión</a>
+        </div>
+    {% endif %}
+
+
+    <h1 class="display-5 text-primaty text-center text-white"><b>Registro administrador</b></h1>
+    <div class="col-6">
+        <label for="inputName" class="form-labeñ text-white">Nombre &#58</label>
+        <input name="nombres" required type="text" class="form-control" id="inputName" placeholder="Escribe tu nombre">
+    </div>
+    <div class="col-6">
+        <label for="inputLast" class="form-labeñ text-white">Apellidos &#58</label>
+        <input name="apellidos" required type="text" class="form-control" id="inputName"
+               placeholder="Escribe tus apellidos">
+    </div>
+    <div class="col-6">
+        <label for="emailInput" class="form-label text-white">Email &#58 </label>
+        <input
+                required
+                type="text"
+                placeholder="Escribe tu email"
+                class="form-control"
+                id="emailInput"
+                name="email"
+        />
+    </div>
+
+    <div class="col-6">
+        <label for="departamentoInput" class="form-label text-white">Cargo de trabajo:</label>
+        <input id="departamentoInput" name="departamento" placeholder="Escribe tu departamento" required class="form-control" type="text">
+    </div>
+    <div class="col-6">
+        <label for="inputPhone" class="form-label text-white">Numero de telefono &#58</label>
+        <input name="numero_telefono" required type="number" class="form-control" id="inputPhone"
+               placeholder="Numero de Teléfono">
+    </div>
+    <div class="col-6">
+        <label for="dateInput" class="form-label text-white">Fecha nacimiento &#58</label>
+        <input name="fecha_nacimiento" required type="date" class="form-control" id="dateInput">
+    </div>
+    <div class="col-12">
+        <label for="inputAdress" class="form-label text-white">Direccion &#58</label>
+        <input name="direccion" required type="text" class="form-control" id="inputAdress" placeholder="Direction">
+    </div>
+
+
+
+    <div class="col-6">
+        <label for="password1" class="form-label text-white">Contrasena &#58</label>
+        <input id="password1" class="form-control" type="password" name="password1" required/>
+
+    </div>
+
+    <div class="col-6">
+        <label for="password2" class="form-label text-white">Repite tu contrasena &#58</label>
+        <input id="password2" class="form-control" type="password" name="password2" required/>
+    </div>
+
+
+    <div class="mb-3">
+        <label for="foto" class="form-label">Foto personal:</label>
+        <input class="form-control" type="file" id="imagen" name="imagen" required>
+    </div>
+
+    <div class="col-12">
+        <div class="form-check">
+            <input required type="checkbox" id="checkTerms" class="form-checkinput">
+            <label for="checkTerms" class="form-checkinput text-white">Acepto los terminos y condiciones</label>
+        </div>
+    </div>
+    <div class="col-12 mb-4">
+        <center>
+            <button type="submit" class="btn btn-primary">
+                Registrate
+            </button>
+        </center>
+    </div>
+</form>
+</body>
+</html>
+
+

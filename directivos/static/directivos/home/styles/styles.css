@@ -1,0 +1,38 @@
+:root {
+    --color-dark: #1b1b1b;
+    --color-light: #ffffff;
+    --color-gold: #c7b8a5;
+}
+
+body {
+    font-family: "Oswald", sans-serif;
+    font-weight: 200;
+    background-color: var(--color-dark);
+    color: var(--color-dark);
+    letter-spacing: 0.05rem;
+}
+
+.tarjeta {
+    width: 20rem;
+    margin: 0 auto;
+}
+
+
+
+.imagen {
+    width: 10rem;
+    height: 10rem;
+}
+
+@media (min-width: 480px) {
+    .tarjeta {
+        width: 25rem;
+
+        margin-top: 5rem;
+        display: grid;
+        place-items: center;
+        padding: 1rem;
+    }
+
+
+}
