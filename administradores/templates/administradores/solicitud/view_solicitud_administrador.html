@@ -1,0 +1,52 @@
+{% extends 'administradores' %}
+
+{% load static %}
+
+{% block content %}
+
+    <main class="container">
+        <h1 class="text-white mb-5">{{ title }}</h1>
+
+        {% if mensaje %}
+            <div class="alert alert-info">
+                <h2 class="text-black">{{ mensaje }}</h2>
+            </div>
+
+            {% if solicitud %}
+
+                <div class="card-text card d-flex align-items-center p-4">
+                    <h2 class="text-uppercase mb-5">Ultima solicitud</h2>
+                    <h2 class="text-black">Fecha: {{ solicitud.fecha_solicitud }}</h2>
+                    <h2 class="text-black">Estado solicitud: {{ solicitud.estado_solicitud }}</h2>
+                    <h2 class="text-black">Tipo solicitud: {{ solicitud.tipo_solicitud }}</h2>
+                </div>
+
+
+            {% endif %}
+
+            {% if mensaje_solicitud %}
+
+                <div class="alert alert-info">
+                    <h2 class="text-black">{{ mensaje_solicitud }}</h2>
+                </div>
+
+            {% elif permite_solicitud %}
+                <form method="post">
+                    {% csrf_token %}
+                    <h2 class="text-white">Solicitar credencial</h2>
+                    <div class="col-12">
+                        <center>
+                            <button type="submit" class="btn btn-primary">
+                                Soliciar credencial
+                            </button>
+                        </center>
+                    </div>
+                </form>
+
+            {% endif %}
+
+        {% endif %}
+
+    </main>
+
+{% endblock %}

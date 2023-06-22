@@ -36,6 +36,14 @@ class DirectivosCredencialView(View):
         if not request.user.is_authenticated:
             return redirect('directivos_login')
 
+        tipo_usuario = request.user.tipo_usuario
+        if tipo_usuario == 'administrador':
+            return redirect('administradores_home')
+        elif tipo_usuario == 'alumno':
+            return redirect('alumnos_home')
+        elif tipo_usuario == 'maestro':
+            return redirect('maestros_home')
+
         directivo = Directivo.objects.get(email=request.user.email)
         permite_visualizar = directivo.estado_credencial()
         context = {
@@ -59,6 +67,14 @@ class DirectivosHomeView(View):
     def get(self, request):
         if not request.user.is_authenticated:
             return redirect('directivos_login')
+
+        tipo_usuario = request.user.tipo_usuario
+        if tipo_usuario == 'administrador':
+            return redirect('administradores_home')
+        elif tipo_usuario == 'alumno':
+            return redirect('alumnos_home')
+        elif tipo_usuario == 'maestro':
+            return redirect('maestros_home')
 
         directivo = Directivo.objects.get(email=request.user.email)
 
@@ -111,6 +127,7 @@ class DirectivosCrearView(View):
             fecha_nacimiento=fecha_nacimiento,
             puesto=puesto,
             imagen=imagen,
+            tipo_usuario='directivo'
         )
         directivo.set_password(password1)
         directivo.save()
@@ -122,3 +139,153 @@ class DirectivosCrearView(View):
         print('deberia de llegar aqui')
 
         return render(request, 'directivos/crear/view_crear_directivos.html', context={'success': 'Directivo creado con exito, iniciar sesion: '})
+
+class DirectivosPerfilView(View):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return redirect('directivos_login')
+
+        tipo_usuario = request.user.tipo_usuario
+        if tipo_usuario == 'administrador':
+            return redirect('administradores_home')
+        elif tipo_usuario == 'alumno':
+            return redirect('alumnos_home')
+        elif tipo_usuario == 'maestro':
+            return redirect('maestros_home')
+
+        directivo = Directivo.objects.get(email=request.user.email)
+
+        context = {
+            "imagen": directivo.imagen.url,
+            "nombre": directivo.nombre,
+            "apellidos": directivo.apellidos,
+            "email": directivo.email,
+            "numero_telefono": directivo.numero_telefono,
+            "direccion": directivo.direccion,
+            "fecha_nacimiento": directivo.fecha_nacimiento,
+            "puesto": directivo.puesto,
+            "estado_credencial": directivo.estado_credencial()
+        }
+
+        return render(request, 'directivos/perfil/view_perfil_administrador.html', context=context)
+
+    def post(self, request):
+        # campos
+        # nombre, email, apellidos, fecha_nacimiento, direccion, numero_telefono, imagen, puesto
+        nombre = request.POST.get('nombres')
+        apellidos = request.POST.get('apellidos')
+        email = request.POST.get('email')
+        numero_telefono = request.POST.get('numero_telefono')
+        direccion = request.POST.get('direccion')
+        fecha_nacimiento = request.POST.get('fecha_nacimiento')
+        puesto = request.POST.get('puesto')
+        imagen = request.FILES.get('imagen')
+
+        directivo = Directivo.objects.get(email=request.user.email)
+
+        directivo.nombre = nombre
+        directivo.apellidos = apellidos
+        directivo.email = email
+        directivo.numero_telefono = numero_telefono
+        directivo.direccion = direccion
+        directivo.fecha_nacimiento = fecha_nacimiento
+        directivo.puesto = puesto
+        if imagen is not None:
+            directivo.imagen = imagen
+
+        directivo.save()
+
+        context = {
+            "imagen": directivo.imagen.url,
+            "nombre": directivo.nombre,
+            "apellidos": directivo.apellidos,
+            "email": directivo.email,
+            "numero_telefono": directivo.numero_telefono,
+            "direccion": directivo.direccion,
+            "fecha_nacimiento": directivo.fecha_nacimiento,
+            "puesto": directivo.puesto,
+            "estado_credencial": directivo.estado_credencial(),
+            "mensaje": "Datos actualizados con exito"
+        }
+
+        return render(request, 'directivos/perfil/view_perfil_administrador.html', context=context)
+
+class DirectivoFichaMedicaView(View):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return redirect('administradores_login')
+
+        tipo_usuario = request.user.tipo_usuario
+        if tipo_usuario == 'administrador':
+            return redirect('administradores_home')
+        elif tipo_usuario == 'alumno':
+            return redirect('alumnos_home')
+        elif tipo_usuario == 'maestro':
+            return redirect('maestros_home')
+
+        directivo = Directivo.objects.get(email=request.user.email)
+
+        if directivo.requiereLlenarFichaMedica() or directivo.requiereLlenarContactoEmergencia():
+            context = {
+                "mensaje": "Por favor, llene su ficha medica y de contacto de emergencia antes de continuar, de lo contrario no podra activar su credencial",
+                "tipo_sangre": '',
+                "alergias": '',
+                "enfermedades": '',
+                "nombre_contacto_emergencia": '',
+                "numero_contacto_emergencia": ''
+            }
+        else:
+            context = {
+                "tipo_sangre": directivo.ficha_medica.tipo_sangre,
+                "alergias": directivo.ficha_medica.alergias,
+                "enfermedades": directivo.ficha_medica.enfermedades_cronicas,
+                "nombre_contacto_emergencia": directivo.contacto_emergencia.nombre_contacto_emergencia,
+                "numero_contacto_emergencia": directivo.contacto_emergencia.numero_contacto_emergencia,
+            }
+
+        return render(request, 'directivos/ficha_medica/view_ficha_medica_directivo.html', context=context)
+
+    def post(self, request):
+
+        directivo = Directivo.objects.get(email=request.user.email)
+        if directivo.requiereLlenarFichaMedica() or directivo.requiereLlenarContactoEmergencia():
+            directivo.crearFichaMedica(tipo_sangre=request.POST.get('tipo_sangre'),
+                                           alergias=request.POST.get('alergias'),
+                                           enfermedades_cronicas=request.POST.get('enfermedades'))
+            directivo.crearContactoEmergencia(
+                nombre=request.POST.get('nombre_contacto_emergencia'),
+                numero_telefono=request.POST.get('numero_contacto_emergencia'))
+            directivo.save()
+            context = {
+                "tipo_sangre": directivo.ficha_medica.tipo_sangre,
+                "alergias": directivo.ficha_medica.alergias,
+                "enfermedades": directivo.ficha_medica.enfermedades_cronicas,
+                "nombre_contacto_emergencia": directivo.contacto_emergencia.nombre_contacto_emergencia,
+                "numero_contacto_emergencia": directivo.contacto_emergencia.numero_contacto_emergencia,
+                "mensaje": "Datos actualizados correctamente"
+            }
+
+            return render(request, 'directivos/ficha_medica/view_ficha_medica_directivo.html',
+                          context=context)
+
+        else:
+            directivo.ficha_medica.tipo_sangre = request.POST.get('tipo_sangre')
+            directivo.ficha_medica.alergias = request.POST.get('alergias')
+            directivo.ficha_medica.enfermedades = request.POST.get('enfermedades')
+            directivo.contacto_emergencia.nombre_contacto_emergencia = request.POST.get(
+                'nombre_contacto_emergencia')
+            directivo.contacto_emergencia.numero_contacto_emergencia = request.POST.get(
+                'numero_contacto_emergencia')
+            directivo.ficha_medica.save()
+            directivo.contacto_emergencia.save()
+            context = {
+                "tipo_sangre": directivo.ficha_medica.tipo_sangre,
+                "alergias": directivo.ficha_medica.alergias,
+                "enfermedades": directivo.ficha_medica.enfermedades,
+                "nombre_contacto_emergencia": directivo.contacto_emergencia.nombre_contacto_emergencia,
+                "numero_contacto_emergencia": directivo.contacto_emergencia.numero_contacto_emergencia,
+                "mensaje": "Datos actualizados correctamente"
+            }
+
+            return render(request, 'directivos/ficha_medica/view_ficha_medica_directivo.html',
+                          context=context)

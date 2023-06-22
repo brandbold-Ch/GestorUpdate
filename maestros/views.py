@@ -33,6 +33,14 @@ class MaestrosCredencialView(View):
         if not request.user.is_authenticated:
             return redirect('maestros_login')
 
+        tipo_usuario = request.user.tipo_usuario
+        if tipo_usuario == 'administrador':
+            return redirect('administradores_home')
+        elif tipo_usuario == 'alumno':
+            return redirect('alumnos_home')
+        elif tipo_usuario == 'directivo':
+            return redirect('directivos_home')
+
         maestro = Maestro.objects.get(email=request.user.email)
         permite_visualizar = maestro.estado_credencial()
         context = {
@@ -55,6 +63,14 @@ class MaestrosHomeView(View):
     def get(self, request):
         if not request.user.is_authenticated:
             return redirect('maestros_login')
+
+        tipo_usuario = request.user.tipo_usuario
+        if tipo_usuario == 'administrador':
+            return redirect('administradores_home')
+        elif tipo_usuario == 'alumno':
+            return redirect('alumnos_home')
+        elif tipo_usuario == 'directivo':
+            return redirect('directivos_home')
 
         maestro = Maestro.objects.get(email=request.user.email)
         context = {
@@ -104,6 +120,7 @@ class MaestroCrearView(View):
             fecha_nacimiento=fecha_nacimiento,
             especialidad=especialidad,
             imagen=imagen,
+            tipo_usuario='maestro'
         )
         maestro.set_password(password1)
         maestro.save()
@@ -113,3 +130,154 @@ class MaestroCrearView(View):
         maestro.groups.add(grupo_docentes)
 
         return render(request, 'maestros/crear/view_crear_maestro.html', {'success': 'Maestro creado con exito, iniciar sesion: '})
+
+class MaestrosPerfilView(View):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return redirect('directivos_login')
+
+        tipo_usuario = request.user.tipo_usuario
+        if tipo_usuario == 'administrador':
+            return redirect('administradores_home')
+        elif tipo_usuario == 'alumno':
+            return redirect('alumnos_home')
+        elif tipo_usuario == 'directivo':
+            return redirect('directivos_home')
+
+        maestro = Maestro.objects.get(email=request.user.email)
+
+        context = {
+            "imagen": maestro.imagen.url,
+            "nombre": maestro.nombre,
+            "apellidos": maestro.apellidos,
+            "email": maestro.email,
+            "numero_telefono": maestro.numero_telefono,
+            "direccion": maestro.direccion,
+            "fecha_nacimiento": maestro.fecha_nacimiento,
+            "especialidad": maestro.especialidad,
+            "estado_credencial": maestro.estado_credencial()
+        }
+
+        return render(request, 'maestros/perfil/view_perfil_maestro.html', context=context)
+
+    def post(self, request):
+        # campos
+        # nombre, email, apellidos, fecha_nacimiento, direccion, numero_telefono, imagen, puesto
+        nombre = request.POST.get('nombres')
+        apellidos = request.POST.get('apellidos')
+        email = request.POST.get('email')
+        numero_telefono = request.POST.get('numero_telefono')
+        direccion = request.POST.get('direccion')
+        fecha_nacimiento = request.POST.get('fecha_nacimiento')
+        especialidad = request.POST.get('especialidad')
+        imagen = request.FILES.get('imagen')
+
+        maestro = Maestro.objects.get(email=request.user.email)
+
+        maestro.nombre = nombre
+        maestro.apellidos = apellidos
+        maestro.email = email
+        maestro.numero_telefono = numero_telefono
+        maestro.direccion = direccion
+        maestro.fecha_nacimiento = fecha_nacimiento
+        maestro.especialidad = especialidad
+        if imagen is not None:
+            maestro.imagen = imagen
+
+        maestro.save()
+
+        context = {
+            "imagen": maestro.imagen.url,
+            "nombre": maestro.nombre,
+            "apellidos": maestro.apellidos,
+            "email": maestro.email,
+            "numero_telefono": maestro.numero_telefono,
+            "direccion": maestro.direccion,
+            "fecha_nacimiento": maestro.fecha_nacimiento,
+            "especialidad": maestro.especialidad,
+            "estado_credencial": maestro.estado_credencial(),
+            "mensaje": "Datos actualizados con exito"
+        }
+
+        return render(request, 'maestros/perfil/view_perfil_maestro.html', context=context)
+
+
+class MaestrosFichaMedicaView(View):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return redirect('administradores_login')
+
+        tipo_usuario = request.user.tipo_usuario
+        if tipo_usuario == 'administrador':
+            return redirect('administradores_home')
+        elif tipo_usuario == 'alumno':
+            return redirect('alumnos_home')
+        elif tipo_usuario == 'directivo':
+            return redirect('directivos_home')
+
+        maestro = Maestro.objects.get(email=request.user.email)
+
+        if maestro.requiereLlenarFichaMedica() or maestro.requiereLlenarContactoEmergencia():
+            context = {
+                "mensaje": "Por favor, llene su ficha medica y de contacto de emergencia antes de continuar, de lo contrario no podra activar su credencial",
+                "tipo_sangre": '',
+                "alergias": '',
+                "enfermedades": '',
+                "nombre_contacto_emergencia": '',
+                "numero_contacto_emergencia": ''
+            }
+        else:
+            context = {
+                "tipo_sangre": maestro.ficha_medica.tipo_sangre,
+                "alergias": maestro.ficha_medica.alergias,
+                "enfermedades": maestro.ficha_medica.enfermedades_cronicas,
+                "nombre_contacto_emergencia": maestro.contacto_emergencia.nombre_contacto_emergencia,
+                "numero_contacto_emergencia": maestro.contacto_emergencia.numero_contacto_emergencia,
+            }
+
+        return render(request, 'maestros/ficha_medica/view_ficha_medica_maestro.html', context=context)
+
+    def post(self, request):
+
+        maestro = Maestro.objects.get(email=request.user.email)
+        if maestro.requiereLlenarFichaMedica() or maestro.requiereLlenarContactoEmergencia():
+            maestro.crearFichaMedica(tipo_sangre=request.POST.get('tipo_sangre'),
+                                           alergias=request.POST.get('alergias'),
+                                           enfermedades_cronicas=request.POST.get('enfermedades'))
+            maestro.crearContactoEmergencia(
+                nombre=request.POST.get('nombre_contacto_emergencia'),
+                numero_telefono=request.POST.get('numero_contacto_emergencia'))
+            maestro.save()
+            context = {
+                "tipo_sangre": maestro.ficha_medica.tipo_sangre,
+                "alergias": maestro.ficha_medica.alergias,
+                "enfermedades": maestro.ficha_medica.enfermedades_cronicas,
+                "nombre_contacto_emergencia": maestro.contacto_emergencia.nombre_contacto_emergencia,
+                "numero_contacto_emergencia": maestro.contacto_emergencia.numero_contacto_emergencia,
+                "mensaje": "Datos actualizados correctamente"
+            }
+
+            return render(request, 'maestros/ficha_medica/view_ficha_medica_maestro.html',
+                          context=context)
+
+        else:
+            maestro.ficha_medica.tipo_sangre = request.POST.get('tipo_sangre')
+            maestro.ficha_medica.alergias = request.POST.get('alergias')
+            maestro.ficha_medica.enfermedades = request.POST.get('enfermedades')
+            maestro.contacto_emergencia.nombre_contacto_emergencia = request.POST.get(
+                'nombre_contacto_emergencia')
+            maestro.contacto_emergencia.numero_contacto_emergencia = request.POST.get(
+                'numero_contacto_emergencia')
+            maestro.ficha_medica.save()
+            maestro.contacto_emergencia.save()
+            context = {
+                "tipo_sangre": maestro.ficha_medica.tipo_sangre,
+                "alergias": maestro.ficha_medica.alergias,
+                "enfermedades": maestro.ficha_medica.enfermedades,
+                "nombre_contacto_emergencia": maestro.contacto_emergencia.nombre_contacto_emergencia,
+                "numero_contacto_emergencia": maestro.contacto_emergencia.numero_contacto_emergencia,
+                "mensaje": "Datos actualizados correctamente"
+            }
+
+            return render(request, 'maestros/ficha_medica/view_ficha_medica_maestro.html',
+                          context=context)

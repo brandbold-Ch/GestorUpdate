@@ -64,7 +64,6 @@ class FichaMedica(models.Model):
     tipo_sangre = models.CharField(max_length=3)
     alergias = models.CharField(max_length=300, default='')
     enfermedades_cronicas = models.CharField(max_length=255, default='')
-    contacto_emergencia = models.OneToOneField(ContactoEmergencia, on_delete=models.PROTECT)
     usuario = models.ForeignKey('UsuarioPersonalizado', on_delete=models.PROTECT, null=True,
                                 related_name='ficha_medica_relacionada')
 
@@ -131,10 +130,33 @@ class UsuarioPersonalizado(AbstractBaseUser, PermissionsMixin):
                                             related_name='contacto_emergencia_relacion')
     solicitud = models.ForeignKey('SolicitudCredencial', on_delete=models.PROTECT, null=True,
                                   related_name='solicitud_relacion')
+    tipo_usuario = models.CharField(max_length=20, choices=[('alumno', 'alumno'), ('maestro', 'maestro'), ('administrador', 'administrador'), ('directivo', 'directivo')])
 
     objects = UsuarioBasePersonalizado()
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
+
+    # def nueva_solicitud(self):
+    #     return self.solicitud = SolicitudCredencial.objects.create(usuario=self)
+
+    def estado_ultima_solicitud(self):
+        ultima_solicitud = self.solicitudes.order_by('-fecha_solicitud').first()
+        estado = ultima_solicitud.estado_solicitud
+        return estado
+
+    def ficha_medica_existe(self):
+        if self.ficha_medica is None:
+            return False
+        return True
+
+    def contacto_emergencia_existe(self):
+        if self.contacto_emergencia is None:
+            return False
+        return True
+
+    def obtener_ultima_solicitud(self):
+        estado = self.solicitudes.order_by('-fecha_solicitud').first()
+        return estado
 
     def estado_credencial(self):
         return self.credencial.estado_credencial
@@ -150,13 +172,26 @@ class UsuarioPersonalizado(AbstractBaseUser, PermissionsMixin):
         self.credencial = Credencial.objects.create(usuario=self)
         self.save()
 
-    def crearFichaMedica(self):
-        self.ficha_medica = FichaMedica.objects.create(usuario=self)
+    def crearFichaMedica(self, tipo_sangre, alergias, enfermedades_cronicas):
+        self.ficha_medica = FichaMedica.objects.create(tipo_sangre=tipo_sangre, alergias=alergias,
+                                                       enfermedades_cronicas=enfermedades_cronicas, usuario=self)
         self.save()
 
-    def crearContactoEmergencia(self):
-        self.contacto_emergencia = ContactoEmergencia.objects.create(usuario=self)
+    def crearContactoEmergencia(self, nombre, numero_telefono):
+        self.contacto_emergencia = ContactoEmergencia.objects.create(nombre_contacto_emergencia=nombre, numero_contacto_emergencia=numero_telefono,
+                                                                     usuario=self)
         self.save()
+
+    def requiereLlenarFichaMedica(self):
+        if self.ficha_medica:
+            return False
+        return True
+
+    def requiereLlenarContactoEmergencia(self):
+        if self.contacto_emergencia:
+            return False
+        return True
+
 
     def __str__(self):
         return self.email
@@ -168,10 +203,13 @@ class Alumno(UsuarioPersonalizado):
     cuatrimestre = models.ForeignKey(Cuatrimestre, on_delete=models.PROTECT, related_name='cuatrimestre')
     carrera = models.ForeignKey(Carrera, on_delete=models.PROTECT, related_name='carrera')
     gradoDeEstudio = models.ForeignKey(GradoDeEstudio, on_delete=models.PROTECT, related_name='grado_de_estudio')
+    is_alumno = models.BooleanField(default=True)
+
 
 
 class Maestro(UsuarioPersonalizado):
     especialidad = models.CharField(max_length=50)
+    is_maestro = models.BooleanField(default=True)
 
     def __str__(self):
         return self.nombre
@@ -180,6 +218,7 @@ class Maestro(UsuarioPersonalizado):
 class Administrador(UsuarioPersonalizado):
     departamento = models.CharField(max_length=30)
     is_admin = models.BooleanField(default=False)
+    is_administrador = models.BooleanField(default=True)
 
     def hacerAdmin(self):
         self.is_superuser = True
@@ -191,6 +230,7 @@ class Administrador(UsuarioPersonalizado):
 
 class Directivo(UsuarioPersonalizado):
     puesto = models.CharField(max_length=30)
+    is_directivo = models.BooleanField(default=True)
 
     def __str__(self):
         return self.nombre

@@ -1,0 +1,36 @@
+{% extends 'alumnos/layouts/view_home_alumno.html' %}
+
+{% load static %}
+
+{% block content %}
+
+    <main class="container">
+        <h1 class="text-white mb-5">Solicitudes</h1>
+
+        {% if no_solicitud_datos_no %}
+            <h1 class="text-white">{{ mensaje }}</h1>
+        {% endif %}
+
+        {% if no_solicitud_pendiente %}
+
+            <h1 class="text-white">{{ mensaje }}</h1>
+
+        {% endif %}
+
+        {% if no_solicitud_credencial_activa %}
+
+            <h1 class="text-white">{{ mensaje }}</h1>
+
+        {% endif %}
+
+        {% if solicitud_credencial %}
+
+            <form action="" method="post">
+                button type="submit" class="btn btn-primary">Solicitar credencial</button>
+            </form>
+
+        {% endif %}
+
+    </main>
+
+{% endblock %}
