@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.views import View
+from django.contrib.auth.models import Group
 
 from django.contrib.auth import authenticate, login, logout
 
@@ -31,6 +32,30 @@ class AdministradoresLogoutView(View):
         return redirect('administradores_login')
 
 
+class AdministradoresCredencialView(View):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return redirect('administradores_login')
+
+        administrador = Administrador.objects.get(email=request.user.email)
+        permite_visualizar = administrador.estado_credencial()
+        context = {
+            "imagen": administrador.imagen.url,
+            "nombre": administrador.nombre,
+            "apellidos": administrador.apellidos,
+            "email": administrador.email,
+            "numero_telefono": administrador.numero_telefono,
+            "direccion": administrador.direccion,
+            "fecha_nacimiento": administrador.fecha_nacimiento,
+            "departamento": administrador.departamento,
+            "estado_credencial": administrador.estado_credencial(),
+            "permite_visualizar": permite_visualizar,
+
+        }
+
+        return render(request, 'administradores/credencial/view_credencial_administradores.html', context=context)
+
+
 class AdministradoresHomeView(View):
     def get(self, request):
         if not request.user.is_authenticated:
@@ -46,6 +71,7 @@ class AdministradoresHomeView(View):
             "direccion": administrador.direccion,
             "fecha_nacimiento": administrador.fecha_nacimiento,
             "departamento": administrador.departamento,
+            "estado_credencial": administrador.estado_credencial()
 
         }
 
@@ -93,6 +119,8 @@ class AdministradoresCrearView(View):
         administrador.save()
         administrador.crearCredencial()
         administrador.hacerAdmin()
+        grupo_administrativos = Group.objects.get(name='Administrativos')
+        administrador.groups.add(grupo_administrativos)
 
         return render(request, 'administradores/crear/view_crear_administradores.html',
                       context={'success': 'Administrador creado correctamente, iniciar sesion: '})

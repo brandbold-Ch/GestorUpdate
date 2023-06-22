@@ -6,6 +6,7 @@ urlpatterns = [
     path('logout/', views.DirectivosLogoutView.as_view(), name='directivos_logout'),
 
     path('home/', views.DirectivosHomeView.as_view(), name='directivos_home'),
+    path('credencial/', views.DirectivosCredencialView.as_view(), name='directivos_credencial'),
 
     path('crear/', views.DirectivosCrearView.as_view(), name='directivos_crear'),
 ]

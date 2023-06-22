@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.views import View
+from django.contrib.auth.models import Group
 
 from django.contrib.auth import authenticate, login, logout
 
@@ -27,11 +28,49 @@ class MaestrosLogoutView(View):
         logout(request)
         return redirect('maestros_login')
 
+class MaestrosCredencialView(View):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return redirect('maestros_login')
+
+        maestro = Maestro.objects.get(email=request.user.email)
+        permite_visualizar = maestro.estado_credencial()
+        context = {
+            "imagen": maestro.imagen.url,
+            "nombre": maestro.nombre,
+            "apellidos": maestro.apellidos,
+            "email": maestro.email,
+            "numero_telefono": maestro.numero_telefono,
+            "direccion": maestro.direccion,
+            "fecha_nacimiento": maestro.fecha_nacimiento,
+            "especialidad": maestro.especialidad,
+            "estado_credencial": maestro.estado_credencial(),
+            "permite_visualizar": permite_visualizar,
+
+        }
+
+        return render(request, 'maestros/credencial/view_credencial_administradores.html', context=context)
+
 class MaestrosHomeView(View):
     def get(self, request):
         if not request.user.is_authenticated:
             return redirect('maestros_login')
-        return render(request, 'maestros/home/view_home_maestro.html')
+
+        maestro = Maestro.objects.get(email=request.user.email)
+        context = {
+            "imagen": maestro.imagen.url,
+            "nombre": maestro.nombre,
+            "apellidos": maestro.apellidos,
+            "email": maestro.email,
+            "numero_telefono": maestro.numero_telefono,
+            "direccion": maestro.direccion,
+            "fecha_nacimiento": maestro.fecha_nacimiento,
+            "especialidad": maestro.especialidad,
+            "estado_credencial": maestro.estado_credencial(),
+        }
+
+
+        return render(request, 'maestros/home/view_home_maestro.html', context=context)
 
 class MaestroCrearView(View):
     # campos
@@ -69,5 +108,8 @@ class MaestroCrearView(View):
         maestro.set_password(password1)
         maestro.save()
         maestro.crearCredencial()
+
+        grupo_docentes = Group.objects.get(name='Docentes')
+        maestro.groups.add(grupo_docentes)
 
         return render(request, 'maestros/crear/view_crear_maestro.html', {'success': 'Maestro creado con exito, iniciar sesion: '})

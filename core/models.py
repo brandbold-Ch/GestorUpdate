@@ -136,6 +136,9 @@ class UsuarioPersonalizado(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
+    def estado_credencial(self):
+        return self.credencial.estado_credencial
+
     def clean(self):
         super().clean()
         if self.email and not self.email.endswith("@uptapachula.edu.mx"):

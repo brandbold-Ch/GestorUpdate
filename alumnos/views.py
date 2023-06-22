@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.views import View
+from django.contrib.auth.models import Group
 
 from django.contrib.auth import authenticate, login, logout
 
@@ -10,7 +11,7 @@ class AlumnosLoginView(View):
     def get(self, request):
         if request.user.is_authenticated:
             return redirect('alumnos_home')
-        return redirect(request, 'alumnos/login/view_login_alumno.html')
+        return render(request, 'alumnos/login/view_login_alumno.html')
 
     def post(self, request):
         email = request.POST.get('email')
@@ -23,12 +24,58 @@ class AlumnosLoginView(View):
 
         return render(request, 'alumnos/login/view_login_alumno.html', {'error': 'Correo o contraseña incorrectos'})
 
+class  AlumnosCredencialView(View):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return redirect('alumnos/login/view_login_alumno.html')
+
+        alumno = Alumno.objects.get(email=request.user.email)
+        permite_visualizar = alumno.estado_credencial()
+
+        context = {
+            "imagen": alumno.imagen.url,
+            "nombre": alumno.nombre,
+            "apellidos": alumno.apellidos,
+            "email": alumno.email,
+            "numero_telefono": alumno.numero_telefono,
+            "direccion": alumno.direccion,
+            "fecha_nacimiento": alumno.fecha_nacimiento,
+            "matricula": alumno.matricula,
+            "tipo_alumno": alumno.gradoDeEstudio.grado,
+            "carrera": alumno.carrera.nombre_carrera,
+            "cuatrimestre": alumno.cuatrimestre.numero_cuatrimestre,
+            "estado_credencial": alumno.estado_credencial(),
+            "permite_visualizar": permite_visualizar
+        }
+
+        print(context)
+
+        return render(request, 'alumnos/credencial/view_credencial_administradores.html', context=context)
+
 
 class AlumnosHomeView(View):
     def get(self, request):
         if not request.user.is_authenticated:
             return redirect('alumnos/login/view_login_alumno.html')
-        return render(request, 'alumnos/home/view_home_alumno.html')
+
+        alumno = Alumno.objects.get(email=request.user.email)
+
+        context = {
+            "imagen": alumno.imagen.url,
+            "nombre": alumno.nombre,
+            "apellidos": alumno.apellidos,
+            "email": alumno.email,
+            "numero_telefono": alumno.numero_telefono,
+            "direccion": alumno.direccion,
+            "fecha_nacimiento": alumno.fecha_nacimiento,
+            "matricula": alumno.matricula,
+            "tipo_alumno": alumno.gradoDeEstudio.grado,
+            "carrera": alumno.carrera.nombre_carrera,
+            "cuatrimestre": alumno.cuatrimestre.numero_cuatrimestre,
+            "estado_credencial": alumno.estado_credencial()
+        }
+
+        return render(request, 'alumnos/home/view_home_alumno.html', context=context)
 
 
 class AlumnosLogoutView(View):
@@ -95,4 +142,8 @@ class AlumnosCrearView(View):
         alumno.set_password(password1)
         alumno.save()
         alumno.crearCredencial()
+
+        grupo_alumnos = Group.objects.get(name='Alumnos')
+        grupo_alumnos.user_set.add(alumno)
+
         return render(request, 'alumnos/crear/view_crear_alumno.html', context={'success': 'Alumno creado correctamente, iniciar sesion: '})

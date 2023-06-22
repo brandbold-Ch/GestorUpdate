@@ -1,0 +1,136 @@
+{% extends 'alumnos/layouts/view_home_alumno.html' %}
+
+{% load static %}
+{% block content %}
+
+    <style>
+        .student-card-content {
+            height: 90%;
+        {#background-color: #f8f8f8;#} border-radius: 5px;
+            box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.25);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+
+        .profile-pic {
+            border-radius: 50%;
+            box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.25);
+            height: 100px;
+        {#margin-right: 20px;#} width: 100px;
+        }
+
+        .student-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .student-title {
+            color: #2f2f2f;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .student-career {
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .student-name {
+            color: #2f2f2f;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .student-id {
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 0px;
+        }
+
+        .credencial {
+            background-color: #F8F8F8; /* Cambiar el color de fondo */
+            border: 1px solid #CCC; /* Añadir borde */
+            border-radius: 5px; /* Añadir bordes redondeados */
+            padding: 10px; /* Añadir un relleno interno */
+            text-align: center; /* Centrar el texto */
+            font-size: 24px; /* Cambiar el tamaño de fuente */
+            font-weight: bold; /* Cambiar la negrita */
+        }
+
+    </style>
+
+
+    <div class="card-header mb-1 bg-success">
+        <h1 class="text-center">Tus credencial</h1>
+    </div>
+    <div class="contenedor">
+
+        {% if permite_visulizar == 'Activa' %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <strong>¡Felicidades!</strong> Ya puedes descargar tu tarjeta de estudiante.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div>
+
+
+            </div>
+            <div class="cards-grid">
+                <div class="flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front"
+                             style="background-image: url('https://img.freepik.com/vector-gratis/fondo-monocromatico-blanco-estilo-papel_52683-66443.jpg?w=1380&t=st=1679244857~exp=1679245457~hmac=0dbb707c5834d85db8ddd325cec0e5c45a061e33a4e88cb8570c15694b4f8f0a');">
+                            <div class="card-content card-content1">
+                                <div class="contenedor_img">
+                                    <p class="nombre_universidad">Universidad Politecnica de Tapachula</p>
+                                    <img src="{% static 'administradores/home/img/LogoUPTap.png' %}" class="profile-pic" alt="">
+                                </div>
+                                <div class="contenedor_datos">
+                                    <img src="{% url 'qr' matricula=alumno.matricula %}" class="card-img-top imagen">
+                                    <p class="dato">Tipo de sangre: <span
+                                            class="dato_remarcado">{{ alumno.ficha_medica.tipo_sangre }}</span></p>
+                                    <p class="dato">Telefono de emergencia: <span
+                                            class="dato_remarcado">{{ alumno.contacto_emergencia.numero_telefono }}</span>
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <img src="{% static 'administradores/home/img/dgutyp.png' %}" class="img_asset" alt=""/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flip-card-back"
+                             style="background-image: url('https://img.freepik.com/vector-gratis/fondo-monocromatico-blanco-estilo-papel_52683-66443.jpg?w=1380&t=st=1679244857~exp=1679245457~hmac=0dbb707c5834d85db8ddd325cec0e5c45a061e33a4e88cb8570c15694b4f8f0a'); ">
+
+                            <div class="student-card-content">
+                                <img src="{% static 'administradores/home/img/user-in-a-square.png' %}" alt="Foto de perfil"
+                                     class="profile-pic">
+                                <div class="student-info">
+                                    <h2 class="student-title">Estudiante</h2>
+                                    <p class="student-career">{{ alumno.carrera }}</p>
+                                    <p class="student-name">{{ alumno.nombre }} {{ alumno.apellido }}</p>
+                                    <p class="student-id">{{ alumno.matricula }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        {% else %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong>¡Lo sentimos!</strong> Aún no puedes descargar tu tarjeta de estudiante.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endif %}
+
+
+
+
+{% endblock %}

@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect
 from django.views import View
+from django.contrib.auth.models import Group
+
 
 from django.contrib.auth import authenticate, login, logout
 
@@ -29,12 +31,50 @@ class DirectivosLogoutView(View):
         logout(request)
         return redirect('directivos_login')
 
+class DirectivosCredencialView(View):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return redirect('directivos_login')
+
+        directivo = Directivo.objects.get(email=request.user.email)
+        permite_visualizar = directivo.estado_credencial()
+        context = {
+            "imagen": directivo.imagen.url,
+            "nombre": directivo.nombre,
+            "apellidos": directivo.apellidos,
+            "email": directivo.email,
+            "numero_telefono": directivo.numero_telefono,
+            "direccion": directivo.direccion,
+            "fecha_nacimiento": directivo.fecha_nacimiento,
+            "puesto": directivo.puesto,
+            "estado_credencial": directivo.estado_credencial(),
+            "permite_visualizar": permite_visualizar,
+
+        }
+
+        return render(request, 'directivos/credencial/view_credencial_administradores.html', context=context)
+
 
 class DirectivosHomeView(View):
     def get(self, request):
         if not request.user.is_authenticated:
             return redirect('directivos_login')
-        return render(request, 'directivos/home/view_home_directivos.html')
+
+        directivo = Directivo.objects.get(email=request.user.email)
+
+        context = {
+            "imagen": directivo.imagen.url,
+            "nombre": directivo.nombre,
+            "apellidos": directivo.apellidos,
+            "email": directivo.email,
+            "numero_telefono": directivo.numero_telefono,
+            "direccion": directivo.direccion,
+            "fecha_nacimiento": directivo.fecha_nacimiento,
+            "puesto": directivo.puesto,
+            "estado_credencial": directivo.estado_credencial()
+        }
+
+        return render(request, 'directivos/home/view_home_directivos.html', context=context)
 
 
 class DirectivosCrearView(View):
@@ -75,6 +115,9 @@ class DirectivosCrearView(View):
         directivo.set_password(password1)
         directivo.save()
         directivo.crearCredencial()
+
+        grupo_directivos = Group.objects.get(name='Directivos')
+        directivo.groups.add(grupo_directivos)
 
         print('deberia de llegar aqui')
 
