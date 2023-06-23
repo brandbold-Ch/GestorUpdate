@@ -41,26 +41,37 @@ class AlumnosCredencialView(View):
             return redirect('maestros_home')
 
         alumno = Alumno.objects.get(email=request.user.email)
-        permite_visualizar = alumno.estado_credencial()
 
+        permite_visualizar = alumno.estado_credencial()
+        print(permite_visualizar)
+        if alumno.contacto_emergencia_existe() == False or alumno.ficha_medica_existe() == False:
+            permite_visualizar = False
+        else:
+
+            context = {
+                "imagen": alumno.imagen.url,
+                "nombre": alumno.nombre,
+                "apellidos": alumno.apellidos,
+                "email": alumno.email,
+                "numero_telefono": alumno.numero_telefono,
+                "direccion": alumno.direccion,
+                "fecha_nacimiento": alumno.fecha_nacimiento,
+                "matricula": alumno.matricula,
+                "tipo_alumno": alumno.gradoDeEstudio.grado,
+                "carrera": alumno.carrera.nombre_carrera,
+                "cuatrimestre": alumno.cuatrimestre.numero_cuatrimestre,
+                "estado_credencial": alumno.estado_credencial(),
+                "permite_visualizar": permite_visualizar,
+                "tipo_sangre": alumno.ficha_medica.tipo_sangre,
+                "telefono_contacto_emergencia": alumno.contacto_emergencia.numero_contacto_emergencia
+            }
+
+            print(context)
+
+            return render(request, 'alumnos/credencial/view_credencial_administradores.html', context=context)
         context = {
-            "imagen": alumno.imagen.url,
-            "nombre": alumno.nombre,
-            "apellidos": alumno.apellidos,
-            "email": alumno.email,
-            "numero_telefono": alumno.numero_telefono,
-            "direccion": alumno.direccion,
-            "fecha_nacimiento": alumno.fecha_nacimiento,
-            "matricula": alumno.matricula,
-            "tipo_alumno": alumno.gradoDeEstudio.grado,
-            "carrera": alumno.carrera.nombre_carrera,
-            "cuatrimestre": alumno.cuatrimestre.numero_cuatrimestre,
-            "estado_credencial": alumno.estado_credencial(),
             "permite_visualizar": permite_visualizar
         }
-
-        print(context)
-
         return render(request, 'alumnos/credencial/view_credencial_administradores.html', context=context)
 
 
@@ -313,41 +324,62 @@ class AlumnoPerfilView(View):
         return render(request, 'alumnos/perfil/view_perfil_administrador.html', context=context)
 
 
-class AlumnoSolicituCredencialView(View):
+class AlumnoSolicitudCredencialView(View):
     def get(self, request):
         alumno = Alumno.objects.get(email=request.user.email)
         estado_ultima_solicitud = alumno.obtener_ultima_solicitud()
 
-        if estado_ultima_solicitud == None:
+        lista_solicitudes = alumno.lista_solicitudes()
+        if lista_solicitudes is None:
+            lista_solicitudes = False
+
+
+        if estado_ultima_solicitud is None:
             if alumno.ficha_medica_existe() == False or alumno.contacto_emergencia_existe() == False:
                 print("No se puede solicitar credencial")
                 context = {
                     "mensaje": "No puedes solicitar una credencial hasta que llenes tu ficha médica y contacto de emergencia",
-                    "no_solicitud_datos_no": True
+                    "no_solicitud_datos_no": True,
+                    "solicitudes": lista_solicitudes
                 }
                 return render(request, 'alumnos/solicitud/view_solicitud_alumno.html', context=context)
+            context = {
+                "mensaje": "Solicita tu credencial",
+                "solicitud_credencial": True,
+                "solicitudes": lista_solicitudes
+            }
+
+            return render(request, 'alumnos/solicitud/view_solicitud_alumno.html', context=context)
         if alumno.estado_ultima_solicitud() == 'pendiente':
             context = {
                 "mensaje": "Ya tienes una solicitud pendiente",
-                "no_solicitud_pendiente": True
+                "no_solicitud_pendiente": True,
+                "solicitudes": lista_solicitudes
             }
             return render(request, 'alumnos/solicitud/view_solicitud_alumno.html', context=context)
 
         if alumno.estado_credencial() == 'activa':
             context = {
                 "mensaje": "Ya tienes una credencial activa",
-                "no_solicitud_credencial_activa": True
+                "no_solicitud_credencial_activa": True,
+                "solicitudes": lista_solicitudes
             }
             return render(request, 'alumnos/solicitud/view_solicitud_alumno.html', context=context)
 
         context = {
             "mensaje": "Solicita tu credencial",
-            "solicitud_credencial": True
+            "solicitud_credencial": True,
+            "solicitudes": lista_solicitudes
         }
 
         return render(request, 'alumnos/solicitud/view_solicitud_alumno.html', context=context)
 
     def post(self, request):
         alumno = Alumno.objects.get(email=request.user.email)
-        alumno.nueva_solicitud()
+        alumno.generar_solicitud()
+        context = {
+            "mensaje": "Solicitud enviada",
+            "solicitud_enviada": True
+        }
 
+        return render(request, 'alumnos/solicitud/view_solicitud_alumno.html', context=context)

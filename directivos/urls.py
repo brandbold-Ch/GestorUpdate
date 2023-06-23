@@ -9,7 +9,9 @@ urlpatterns = [
     path('credencial/', views.DirectivosCredencialView.as_view(), name='directivos_credencial'),
 
     path('perfil/', views.DirectivosPerfilView.as_view(), name='directivos_editar'),
-    path('ficha_medica_contacto_emergencia', views.DirectivoFichaMedicaView.as_view(), name='directivos_ficha_medica_contacto_emergencia'),
+    path('ficha_medica_contacto_emergencia/', views.DirectivoFichaMedicaView.as_view(), name='directivos_ficha_medica'),
+
+    path('solicitud/', views.DirectivoSolicitudCredencialView.as_view(), name='directivos_solicitud_credencial'),
 
     path('crear/', views.DirectivosCrearView.as_view(), name='directivos_crear'),
 ]

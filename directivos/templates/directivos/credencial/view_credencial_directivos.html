@@ -72,7 +72,7 @@
     </div>
     <div class="contenedor">
 
-        {% if permite_visulizar == 'Activa' %}
+        {% if permite_visualizar == 'activa' %}
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 <strong>¡Felicidades!</strong> Ya puedes descargar tu tarjeta de estudiante.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -92,11 +92,11 @@
                                     <img src="{% static 'administradores/home/img/LogoUPTap.png' %}" class="profile-pic" alt="">
                                 </div>
                                 <div class="contenedor_datos">
-                                    <img src="{% url 'qr' matricula=alumno.matricula %}" class="card-img-top imagen">
+                                    <img src="" class="card-img-top imagen">
                                     <p class="dato">Tipo de sangre: <span
-                                            class="dato_remarcado">{{ alumno.ficha_medica.tipo_sangre }}</span></p>
+                                            class="dato_remarcado">{{ tipo_sangre }}</span></p>
                                     <p class="dato">Telefono de emergencia: <span
-                                            class="dato_remarcado">{{ alumno.contacto_emergencia.numero_telefono }}</span>
+                                            class="dato_remarcado">{{ telefono_contacto_emergencia }}</span>
                                     </p>
                                 </div>
 
@@ -109,13 +109,12 @@
                              style="background-image: url('https://img.freepik.com/vector-gratis/fondo-monocromatico-blanco-estilo-papel_52683-66443.jpg?w=1380&t=st=1679244857~exp=1679245457~hmac=0dbb707c5834d85db8ddd325cec0e5c45a061e33a4e88cb8570c15694b4f8f0a'); ">
 
                             <div class="student-card-content">
-                                <img src="{% static 'directivos/home/img/user-in-a-square.png' %}" alt="Foto de perfil"
+                                <img src="{{ imagen }}" alt="Foto de perfil"
                                      class="profile-pic">
                                 <div class="student-info">
-                                    <h2 class="student-title">Estudiante</h2>
-                                    <p class="student-career">{{ alumno.carrera }}</p>
-                                    <p class="student-name">{{ alumno.nombre }} {{ alumno.apellido }}</p>
-                                    <p class="student-id">{{ alumno.matricula }}</p>
+                                    <h2 class="student-title">{{ tipo_usuario }}</h2>
+                                    <p class="student-name">{{ nombre }} {{ apellidos  }}</p>
+                                    <p class="student-id">{{ puesto }}</p>
                                 </div>
                             </div>
                         </div>
@@ -129,8 +128,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         {% endif %}
-
-
 
 
 {% endblock %}

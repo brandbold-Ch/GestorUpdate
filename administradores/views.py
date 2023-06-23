@@ -75,10 +75,6 @@ class AdministradoresCredencialView(View):
         return render(request, 'administradores/credencial/view_credencial_administradores.html', context=context)
 
 
-def AdministradorVerificar(request):
-    pass
-
-
 class AdministradoresHomeView(View):
     def get(self, request):
         if not request.user.is_authenticated:

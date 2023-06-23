@@ -15,14 +15,14 @@ from django.contrib.auth.models import (
 )
 
 ESTADOS_SOLICITUD = (
-    ('solicitada', 'solicitada'),
+    ('pendiente', 'pendiente'),
     ('aprobada', 'aprobada'),
     ('rechazada', 'rechazada')
 )
 
 TIPO_SOLICITUD = (
-    ('primera', 'primera'),
-    ('renovacion', 'renovacion')
+    ('nueva', 'nueva'),
+    ('reposicion', 'reposicion')
 )
 
 
@@ -74,7 +74,7 @@ class FichaMedica(models.Model):
 
 
 class Credencial(models.Model):
-    estado_credencial = models.CharField(max_length=10, choices=[('activa', 'Activa'), ('inactiva', 'Inactiva')],
+    estado_credencial = models.CharField(max_length=10, choices=[('activa', 'activa'), ('inactiva', 'inactiva')],
                                          default='inactiva')
     clave_credencial = models.CharField(max_length=36, unique=True)
     usuario = models.ForeignKey('UsuarioPersonalizado', on_delete=models.PROTECT, null=True,
@@ -130,7 +130,9 @@ class UsuarioPersonalizado(AbstractBaseUser, PermissionsMixin):
                                             related_name='contacto_emergencia_relacion')
     solicitud = models.ForeignKey('SolicitudCredencial', on_delete=models.PROTECT, null=True,
                                   related_name='solicitud_relacion')
-    tipo_usuario = models.CharField(max_length=20, choices=[('alumno', 'alumno'), ('maestro', 'maestro'), ('administrador', 'administrador'), ('directivo', 'directivo')])
+    tipo_usuario = models.CharField(max_length=20, choices=[('alumno', 'alumno'), ('maestro', 'maestro'),
+                                                            ('administrador', 'administrador'),
+                                                            ('directivo', 'directivo')])
 
     objects = UsuarioBasePersonalizado()
     USERNAME_FIELD = 'email'
@@ -139,10 +141,45 @@ class UsuarioPersonalizado(AbstractBaseUser, PermissionsMixin):
     # def nueva_solicitud(self):
     #     return self.solicitud = SolicitudCredencial.objects.create(usuario=self)
 
+    def lista_solicitudes(self):
+        if self.solicitudes.exists():
+            return self.solicitudes.all()
+        else:
+            return None
+
+    def activar_credencial(self):
+        self.credencial.estado_credencial = 'activa'
+        self.credencial.save()
+
+    def desactivar_credencial(self):
+        self.credencial.estado_credencial = 'inactiva'
+        self.credencial.save()
+
     def estado_ultima_solicitud(self):
         ultima_solicitud = self.solicitudes.order_by('-fecha_solicitud').first()
-        estado = ultima_solicitud.estado_solicitud
-        return estado
+        if ultima_solicitud is None:
+            return None
+        return ultima_solicitud.estado
+
+    def generar_solicitud(self):
+        if self.estado_ultima_solicitud() is None:
+            self.solicitud = SolicitudCredencial.objects.create(usuario=self, tipo_solicitud='nueva',
+                                                                estado='pendiente')
+        else:
+            self.solicitud = SolicitudCredencial.objects.create(usuario=self, tipo_solicitud='reposicion',
+                                                                estado='pendiente')
+
+    def aprobar_solicitud(self):
+        ultima_solicitud = self.solicitudes.order_by('-fecha_solicitud').first()
+        ultima_solicitud.estado = 'aprobada'
+        ultima_solicitud.save()
+        self.credencial.estado_credencial = 'activa'
+        self.credencial.save()
+
+    def rechazar_solicitud(self):
+        ultima_solicitud = self.solicitudes.order_by('-fecha_solicitud').first()
+        ultima_solicitud.estado = 'rechazada'
+        ultima_solicitud.save()
 
     def ficha_medica_existe(self):
         if self.ficha_medica is None:
@@ -178,7 +215,8 @@ class UsuarioPersonalizado(AbstractBaseUser, PermissionsMixin):
         self.save()
 
     def crearContactoEmergencia(self, nombre, numero_telefono):
-        self.contacto_emergencia = ContactoEmergencia.objects.create(nombre_contacto_emergencia=nombre, numero_contacto_emergencia=numero_telefono,
+        self.contacto_emergencia = ContactoEmergencia.objects.create(nombre_contacto_emergencia=nombre,
+                                                                     numero_contacto_emergencia=numero_telefono,
                                                                      usuario=self)
         self.save()
 
@@ -192,7 +230,6 @@ class UsuarioPersonalizado(AbstractBaseUser, PermissionsMixin):
             return False
         return True
 
-
     def __str__(self):
         return self.email
 
@@ -204,7 +241,6 @@ class Alumno(UsuarioPersonalizado):
     carrera = models.ForeignKey(Carrera, on_delete=models.PROTECT, related_name='carrera')
     gradoDeEstudio = models.ForeignKey(GradoDeEstudio, on_delete=models.PROTECT, related_name='grado_de_estudio')
     is_alumno = models.BooleanField(default=True)
-
 
 
 class Maestro(UsuarioPersonalizado):

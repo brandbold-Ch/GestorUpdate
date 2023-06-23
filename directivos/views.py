@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib.auth.models import Group
 
-
 from django.contrib.auth import authenticate, login, logout
 
 from core.models import Directivo
@@ -23,7 +22,8 @@ class DirectivosLoginView(View):
             login(request, login_user)
             return redirect('directivos_home')
 
-        return render(request, 'directivos/login/view_login_directivos.html', {'error': 'Correo o contraseña incorrectos'})
+        return render(request, 'directivos/login/view_login_directivos.html',
+                      {'error': 'Correo o contraseña incorrectos'})
 
 
 class DirectivosLogoutView(View):
@@ -31,10 +31,12 @@ class DirectivosLogoutView(View):
         logout(request)
         return redirect('directivos_login')
 
+
 class DirectivosCredencialView(View):
     def get(self, request):
+        print("DirectivosCredencialView")
         if not request.user.is_authenticated:
-            return redirect('directivos_login')
+            return redirect('alumnos/login/view_login_alumno.html')
 
         tipo_usuario = request.user.tipo_usuario
         if tipo_usuario == 'administrador':
@@ -45,22 +47,37 @@ class DirectivosCredencialView(View):
             return redirect('maestros_home')
 
         directivo = Directivo.objects.get(email=request.user.email)
+
         permite_visualizar = directivo.estado_credencial()
+
+        print(permite_visualizar)
+        if directivo.contacto_emergencia_existe() == False or directivo.ficha_medica_existe() == False:
+            permite_visualizar = False
+        else:
+
+            context = {
+                "imagen": directivo.imagen.url,
+                "nombre": directivo.nombre,
+                "apellidos": directivo.apellidos,
+                "email": directivo.email,
+                "numero_telefono": directivo.numero_telefono,
+                "direccion": directivo.direccion,
+                "fecha_nacimiento": directivo.fecha_nacimiento,
+                "tipo_usuario": "Directivo",
+                "puesto": directivo.puesto,
+                "estado_credencial": directivo.estado_credencial(),
+                "permite_visualizar": permite_visualizar,
+                "tipo_sangre": directivo.ficha_medica.tipo_sangre,
+                "telefono_contacto_emergencia": directivo.contacto_emergencia.numero_contacto_emergencia
+            }
+
+            print(context)
+
+            return render(request, 'directivos/credencial/view_credencial_directivos.html', context=context)
         context = {
-            "imagen": directivo.imagen.url,
-            "nombre": directivo.nombre,
-            "apellidos": directivo.apellidos,
-            "email": directivo.email,
-            "numero_telefono": directivo.numero_telefono,
-            "direccion": directivo.direccion,
-            "fecha_nacimiento": directivo.fecha_nacimiento,
-            "puesto": directivo.puesto,
-            "estado_credencial": directivo.estado_credencial(),
-            "permite_visualizar": permite_visualizar,
-
+            "permite_visualizar": permite_visualizar
         }
-
-        return render(request, 'directivos/credencial/view_credencial_administradores.html', context=context)
+        return render(request, 'directivos/credencial/view_credencial_directivos.html', context=context)
 
 
 class DirectivosHomeView(View):
@@ -113,7 +130,8 @@ class DirectivosCrearView(View):
         imagen = request.FILES.get('imagen')
 
         if password1 != password2:
-            return render(request, 'directivos/crear/view_crear_directivos.html', {'error': 'Las contraseñas no coinciden'})
+            return render(request, 'directivos/crear/view_crear_directivos.html',
+                          {'error': 'Las contraseñas no coinciden'})
         if Directivo.objects.filter(email=email).exists():
             return render(request, 'directivos/crear/view_crear_directivos.html',
                           {'error': 'Este correo ya esta registrado'})
@@ -133,12 +151,11 @@ class DirectivosCrearView(View):
         directivo.save()
         directivo.crearCredencial()
 
-        grupo_directivos = Group.objects.get(name='Directivos')
-        directivo.groups.add(grupo_directivos)
-
         print('deberia de llegar aqui')
 
-        return render(request, 'directivos/crear/view_crear_directivos.html', context={'success': 'Directivo creado con exito, iniciar sesion: '})
+        return render(request, 'directivos/crear/view_crear_directivos.html',
+                      context={'success': 'Directivo creado con exito, iniciar sesion: '})
+
 
 class DirectivosPerfilView(View):
     def get(self, request):
@@ -210,6 +227,7 @@ class DirectivosPerfilView(View):
 
         return render(request, 'directivos/perfil/view_perfil_administrador.html', context=context)
 
+
 class DirectivoFichaMedicaView(View):
     def get(self, request):
         if not request.user.is_authenticated:
@@ -250,8 +268,8 @@ class DirectivoFichaMedicaView(View):
         directivo = Directivo.objects.get(email=request.user.email)
         if directivo.requiereLlenarFichaMedica() or directivo.requiereLlenarContactoEmergencia():
             directivo.crearFichaMedica(tipo_sangre=request.POST.get('tipo_sangre'),
-                                           alergias=request.POST.get('alergias'),
-                                           enfermedades_cronicas=request.POST.get('enfermedades'))
+                                       alergias=request.POST.get('alergias'),
+                                       enfermedades_cronicas=request.POST.get('enfermedades'))
             directivo.crearContactoEmergencia(
                 nombre=request.POST.get('nombre_contacto_emergencia'),
                 numero_telefono=request.POST.get('numero_contacto_emergencia'))
@@ -289,3 +307,63 @@ class DirectivoFichaMedicaView(View):
 
             return render(request, 'directivos/ficha_medica/view_ficha_medica_directivo.html',
                           context=context)
+
+
+class DirectivoSolicitudCredencialView(View):
+    def get(self, request):
+        directivo = Directivo.objects.get(email=request.user.email)
+        estado_ultima_solicitud = directivo.obtener_ultima_solicitud()
+
+        lista_solicitudes = directivo.lista_solicitudes()
+        if lista_solicitudes is None:
+            lista_solicitudes = False
+
+        if estado_ultima_solicitud is None:
+            if directivo.ficha_medica_existe() == False or directivo.contacto_emergencia_existe() == False:
+                print("No se puede solicitar credencial")
+                context = {
+                    "mensaje": "No puedes solicitar una credencial hasta que llenes tu ficha médica y contacto de emergencia",
+                    "no_solicitud_datos_no": True,
+                    "solicitudes": lista_solicitudes
+                }
+                return render(request, 'directivos/solicitud/view_solicitud_directivo.html', context=context)
+            context = {
+                "mensaje": "Solicita tu credencial",
+                "solicitud_credencial": True,
+                "solicitudes": lista_solicitudes
+            }
+
+            return render(request, 'directivos/solicitud/view_solicitud_directivo.html', context=context)
+        if directivo.estado_ultima_solicitud() == 'pendiente':
+            context = {
+                "mensaje": "Ya tienes una solicitud pendiente",
+                "no_solicitud_pendiente": True,
+                "solicitudes": lista_solicitudes
+            }
+            return render(request, 'directivos/solicitud/view_solicitud_directivo.html', context=context)
+
+        if directivo.estado_credencial() == 'activa':
+            context = {
+                "mensaje": "Ya tienes una credencial activa",
+                "no_solicitud_credencial_activa": True,
+                "solicitudes": lista_solicitudes
+            }
+            return render(request, 'directivos/solicitud/view_solicitud_directivo.html', context=context)
+
+        context = {
+            "mensaje": "Solicita tu credencial",
+            "solicitud_credencial": True,
+            "solicitudes": lista_solicitudes
+        }
+
+        return render(request, 'directivos/solicitud/view_solicitud_directivo.html', context=context)
+
+    def post(self, request):
+        directivo = Directivo.objects.get(email=request.user.email)
+        directivo.generar_solicitud()
+        context = {
+            "mensaje": "Solicitud enviada",
+            "solicitud_enviada": True
+        }
+
+        return render(request, 'directivos/solicitud/view_solicitud_directivo.html', context=context)

@@ -30,8 +30,9 @@ class MaestrosLogoutView(View):
 
 class MaestrosCredencialView(View):
     def get(self, request):
+        print("DirectivosCredencialView")
         if not request.user.is_authenticated:
-            return redirect('maestros_login')
+            return redirect('alumnos/login/view_login_alumno.html')
 
         tipo_usuario = request.user.tipo_usuario
         if tipo_usuario == 'administrador':
@@ -42,21 +43,36 @@ class MaestrosCredencialView(View):
             return redirect('directivos_home')
 
         maestro = Maestro.objects.get(email=request.user.email)
+
         permite_visualizar = maestro.estado_credencial()
+
+        print(permite_visualizar)
+        if maestro.contacto_emergencia_existe() == False or maestro.ficha_medica_existe() == False:
+            permite_visualizar = False
+        else:
+
+            context = {
+                "imagen": maestro.imagen.url,
+                "nombre": maestro.nombre,
+                "apellidos": maestro.apellidos,
+                "email": maestro.email,
+                "numero_telefono": maestro.numero_telefono,
+                "direccion": maestro.direccion,
+                "fecha_nacimiento": maestro.fecha_nacimiento,
+                "tipo_usuario": "maestro",
+                "especialidad": maestro.especialidad,
+                "estado_credencial": maestro.estado_credencial(),
+                "permite_visualizar": permite_visualizar,
+                "tipo_sangre": maestro.ficha_medica.tipo_sangre,
+                "telefono_contacto_emergencia": maestro.contacto_emergencia.numero_contacto_emergencia
+            }
+
+            print(context)
+
+            return render(request, 'maestros/credencial/view_credencial_administradores.html', context=context)
         context = {
-            "imagen": maestro.imagen.url,
-            "nombre": maestro.nombre,
-            "apellidos": maestro.apellidos,
-            "email": maestro.email,
-            "numero_telefono": maestro.numero_telefono,
-            "direccion": maestro.direccion,
-            "fecha_nacimiento": maestro.fecha_nacimiento,
-            "especialidad": maestro.especialidad,
-            "estado_credencial": maestro.estado_credencial(),
-            "permite_visualizar": permite_visualizar,
-
+            "permite_visualizar": permite_visualizar
         }
-
         return render(request, 'maestros/credencial/view_credencial_administradores.html', context=context)
 
 class MaestrosHomeView(View):
@@ -125,10 +141,7 @@ class MaestroCrearView(View):
         maestro.set_password(password1)
         maestro.save()
         maestro.crearCredencial()
-
-        grupo_docentes = Group.objects.get(name='Docentes')
-        maestro.groups.add(grupo_docentes)
-
+        maestro.save()
         return render(request, 'maestros/crear/view_crear_maestro.html', {'success': 'Maestro creado con exito, iniciar sesion: '})
 
 class MaestrosPerfilView(View):
@@ -281,3 +294,62 @@ class MaestrosFichaMedicaView(View):
 
             return render(request, 'maestros/ficha_medica/view_ficha_medica_maestro.html',
                           context=context)
+
+class MaestroSolicitudCredencialView(View):
+    def get(self, request):
+        maestro = Maestro.objects.get(email=request.user.email)
+        estado_ultima_solicitud = maestro.obtener_ultima_solicitud()
+
+        lista_solicitudes = maestro.lista_solicitudes()
+        if lista_solicitudes is None:
+            lista_solicitudes = False
+
+        if estado_ultima_solicitud is None:
+            if maestro.ficha_medica_existe() == False or maestro.contacto_emergencia_existe() == False:
+                print("No se puede solicitar credencial")
+                context = {
+                    "mensaje": "No puedes solicitar una credencial hasta que llenes tu ficha médica y contacto de emergencia",
+                    "no_solicitud_datos_no": True,
+                    "solicitudes": lista_solicitudes
+                }
+                return render(request, 'maestros/solicitud/view_solicitud_maestro.html', context=context)
+            context = {
+                "mensaje": "Solicita tu credencial",
+                "solicitud_credencial": True,
+                "solicitudes": lista_solicitudes
+            }
+
+            return render(request, 'maestros/solicitud/view_solicitud_maestro.html', context=context)
+        if maestro.estado_ultima_solicitud() == 'pendiente':
+            context = {
+                "mensaje": "Ya tienes una solicitud pendiente",
+                "no_solicitud_pendiente": True,
+                "solicitudes": lista_solicitudes
+            }
+            return render(request, 'maestros/solicitud/view_solicitud_maestro.html', context=context)
+
+        if maestro.estado_credencial() == 'activa':
+            context = {
+                "mensaje": "Ya tienes una credencial activa",
+                "no_solicitud_credencial_activa": True,
+                "solicitudes": lista_solicitudes
+            }
+            return render(request, 'maestros/solicitud/view_solicitud_maestro.html', context=context)
+
+        context = {
+            "mensaje": "Solicita tu credencial",
+            "solicitud_credencial": True,
+            "solicitudes": lista_solicitudes
+        }
+
+        return render(request, 'maestros/solicitud/view_solicitud_maestro.html', context=context)
+
+    def post(self, request):
+        maestro = Maestro.objects.get(email=request.user.email)
+        maestro.generar_solicitud()
+        context = {
+            "mensaje": "Solicitud enviada",
+            "solicitud_enviada": True
+        }
+
+        return render(request, 'maestros/solicitud/view_solicitud_maestro.html', context=context)

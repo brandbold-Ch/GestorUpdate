@@ -11,5 +11,7 @@ urlpatterns = [
     path('perfil/', views.MaestrosPerfilView.as_view(), name='maestros_editar'),
     path('ficha_medica_contacto_emergencia', views.MaestrosFichaMedicaView.as_view(), name='maestros_ficha_medica_contacto_emergencia'),
 
+    path('solicitud/', views.MaestroSolicitudCredencialView.as_view(), name='maestros_solicitud_credencial'),
+
     path('crear/', views.MaestroCrearView.as_view(), name='maestros_crear'),
 ]

@@ -11,7 +11,7 @@ urlpatterns = [
 
     path('ficha_medica_contacto_emergencia/', views.AlumnosFichaMedicaView.as_view(), name='alumnos_ficha_medica_contacto_emergencia'),
 
-    path('solicitud/', views.AlumnoSolicituCredencialView.as_view(), name='alumnos_solicitud_credencial'),
+    path('solicitud/', views.AlumnoSolicitudCredencialView.as_view(), name='alumnos_solicitud_credencial'),
 
     path('crear/', views.AlumnosCrearView.as_view(), name='alumnos_crear'),
 ]
