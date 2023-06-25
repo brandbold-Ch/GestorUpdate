@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Información QR</title>
+    <!-- Agrega los enlaces CSS de Bootstrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css">
+    <style>
+        /* Estilo personalizado */
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            max-width: 600px;
+            margin-top: 50px;
+        }
+
+        .card {
+            margin-bottom: 20px;
+            border-radius: 10px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .card-title {
+            margin-bottom: 20px;
+            color: #ffffff;
+            background-color: #007bff;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        strong {
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Datos de emergencia</h1>
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Datos personales</h5>
+                <p><strong>Nombre:</strong> {{ nombre }}</p>
+                <p><strong>Apellidos:</strong> {{ apellidos }}</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Ficha médica</h5>
+                <p><strong>Tipo de sangre:</strong> {{ tipo_sangre }}</p>
+                <p><strong>Alergias:</strong> {{ alergias }}</p>
+                <p><strong>Enfermedades crónicas:</strong> {{ enfermedades }}</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Contacto de emergencia</h5>
+                <p><strong>Nombre:</strong> {{ nombre_contacto_emergencia }}</p>
+                <p><strong>Teléfono:</strong> {{ telefono_contacto_emergencia }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agrega los enlaces JavaScript de Bootstrap -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+</body>
+</html>

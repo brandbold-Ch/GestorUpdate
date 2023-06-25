@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-2(-!rm&bzrn&k35c!==%+!a!((i71w!(l)v9i)@sp&=7=w5_z8
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost", "*"]
 
 
 # Application definition
@@ -48,6 +48,7 @@ INSTALLED_APPS = [
 
     'core',
     'home',
+    'password_reset_application',
 ]
 
 MIDDLEWARE = [
@@ -139,3 +140,10 @@ cloudinary.config(
   api_key = "592293896761269",
   api_secret = "2BuakofKjyYnBYtGU6rW3abDObw"
 )
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_HOST_USER = "sistemacredencializacion@gmail.com"
+EMAIL_HOST_PASSWORD = "lqfgkufgqyekikrt"
+EMAIL_USE_TLS = True

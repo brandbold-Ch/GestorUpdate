@@ -1,3 +1,4 @@
+from django.contrib.auth.hashers import make_password
 from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib.auth.models import Group
@@ -7,6 +8,7 @@ from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 
 from core.models import Alumno, Carrera, Cuatrimestre, GradoDeEstudio
+from password_reset_application.MailService import Reset
 
 
 class AlumnosLoginView(View):
@@ -49,6 +51,7 @@ class AlumnosCredencialView(View):
         else:
 
             context = {
+                "id": alumno.id,
                 "imagen": alumno.imagen.url,
                 "nombre": alumno.nombre,
                 "apellidos": alumno.apellidos,
@@ -81,6 +84,7 @@ class AlumnosHomeView(View):
             return redirect('alumnos/login/view_login_alumno.html')
 
         tipo_usuario = request.user.tipo_usuario
+        print(tipo_usuario)
         if tipo_usuario == 'administrador':
             return redirect('administradores_home')
         elif tipo_usuario == 'directivo':
@@ -144,14 +148,25 @@ class AlumnosCrearView(View):
         password2 = request.POST.get('password2')
         imagen = request.FILES.get('imagen')
 
+        lista_carreras = Carrera.objects.all()
+        lista_cuatrimestres = Cuatrimestre.objects.all()
+        lista_grados = GradoDeEstudio.objects.all()
+
         carrera = Carrera.objects.get(id=carrera)
         cuatrimestre = Cuatrimestre.objects.get(id=cuatrimestre)
         grado_de_estudio = GradoDeEstudio.objects.get(id=tipo_alumno)
 
         if password1 != password2:
-            return render(request, 'alumnos/crear/view_crear_alumno.html', {'error': 'Las contraseñas no coinciden'})
+            return render(request, 'alumnos/crear/view_crear_alumno.html',
+                          {'error': 'Las contraseñas no coinciden',
+                           'lista_carreras': lista_carreras,
+                           'lista_cuatrimestres': lista_cuatrimestres,
+                           'lista_grados': lista_grados})
         if Alumno.objects.filter(email=email).exists():
-            return render(request, 'alumnos/crear/view_crear_alumno.html', {'error': 'Este correo ya esta registrado'})
+            return render(request, 'alumnos/crear/view_crear_alumno.html',
+                          {'error': 'Este correo ya esta registrado', 'lista_carreras': lista_carreras,
+                           'lista_cuatrimestres': lista_cuatrimestres,
+                           'lista_grados': lista_grados })
         if Alumno.objects.filter(matricula=matricula).exists():
             return render(request, 'alumnos/crear/view_crear_alumno.html',
                           {'error': 'Esta matricula ya esta registrada'})
@@ -174,8 +189,15 @@ class AlumnosCrearView(View):
         alumno.save()
         alumno.crearCredencial()
 
+        context = {
+            'lista_carreras': lista_carreras,
+            'lista_cuatrimestres': lista_cuatrimestres,
+            'lista_grados': lista_grados,
+            'success': 'Alumno creado correctamente, iniciar sesion: '
+        }
+        print('dentro de post')
         return render(request, 'alumnos/crear/view_crear_alumno.html',
-                      context={'success': 'Alumno creado correctamente, iniciar sesion: '})
+                      context=context)
 
 
 class AlumnosFichaMedicaView(View):
@@ -263,6 +285,9 @@ class AlumnosFichaMedicaView(View):
 class AlumnoPerfilView(View):
     def get(self, request):
 
+        if not request.user.is_authenticated:
+            return redirect('alumnos_login')
+
         tipo_usuario = request.user.tipo_usuario
         if tipo_usuario == 'administrador':
             return redirect('administradores_home')
@@ -285,6 +310,7 @@ class AlumnoPerfilView(View):
             "cuatrimestre": alumno.cuatrimestre,
             "carrera": alumno.carrera,
             "imagen": alumno.imagen.url,
+            "id": alumno.id,
         }
 
         return render(request, 'alumnos/perfil/view_perfil_administrador.html', context=context)
@@ -318,7 +344,8 @@ class AlumnoPerfilView(View):
             "cuatrimestre": alumno.cuatrimestre,
             "carrera": alumno.carrera,
             "imagen": alumno.imagen.url,
-            "mensaje": "Datos actualizados correctamente"
+            "mensaje": "Datos actualizados correctamente",
+            "id": alumno.id
         }
 
         return render(request, 'alumnos/perfil/view_perfil_administrador.html', context=context)
@@ -326,13 +353,24 @@ class AlumnoPerfilView(View):
 
 class AlumnoSolicitudCredencialView(View):
     def get(self, request):
+
+        if not request.user.is_authenticated:
+            return redirect('alumnos/login/view_login_alumno.html')
+
+        tipo_usuario = request.user.tipo_usuario
+        if tipo_usuario == 'administrador':
+            return redirect('administradores_home')
+        elif tipo_usuario == 'directivo':
+            return redirect('directivos_home')
+        elif tipo_usuario == 'maestro':
+            return redirect('maestros_home')
+
         alumno = Alumno.objects.get(email=request.user.email)
         estado_ultima_solicitud = alumno.obtener_ultima_solicitud()
 
         lista_solicitudes = alumno.lista_solicitudes()
         if lista_solicitudes is None:
             lista_solicitudes = False
-
 
         if estado_ultima_solicitud is None:
             if alumno.ficha_medica_existe() == False or alumno.contacto_emergencia_existe() == False:
@@ -383,3 +421,36 @@ class AlumnoSolicitudCredencialView(View):
         }
 
         return render(request, 'alumnos/solicitud/view_solicitud_alumno.html', context=context)
+
+# CORREO ELECTRONICO RECUPERA CONTRASEÑA
+class AlumnoRestaurarPassword(View):
+
+    def get(self, request):
+        return render(request, 'alumnos/restaurar_password/restore.html')
+
+    def post(self, request):
+        email = request.POST.get('email_required')
+        fecha_nacimiento = request.POST.get('date_required')
+        service = Reset()
+
+        try:
+            alumno = Alumno.objects.get(email=email)
+
+            if email.endswith('@uptapachula.edu.mx') and str(alumno.fecha_nacimiento) == fecha_nacimiento:
+                alumno.password = make_password(service.send(email, f"{alumno.nombre} {alumno.apellidos}"))
+                alumno.save()
+                return redirect("alumno_aceptado")
+            else:
+                return redirect('alumno_error')
+        except Exception as e:
+            return redirect('alumno_error')
+
+
+class ErrorView(View):
+    def get(self, request):
+        return render(request, 'alumnos/restaurar_password/errors.html')
+
+
+class AceptacionCambio(View):
+    def get(self, request):
+        return render(request, 'alumnos/restaurar_password/accepted.html')

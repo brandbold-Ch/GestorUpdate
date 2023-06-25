@@ -1,3 +1,4 @@
+from django.contrib.auth.hashers import make_password
 from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib.auth.models import Group
@@ -5,6 +6,8 @@ from django.contrib.auth.models import Group
 from django.contrib.auth import authenticate, login, logout
 
 from core.models import Maestro
+from password_reset_application.MailService import Reset
+
 
 class MaestrosLoginView(View):
     def get(self, request):
@@ -159,6 +162,8 @@ class MaestrosPerfilView(View):
 
         maestro = Maestro.objects.get(email=request.user.email)
 
+
+
         context = {
             "imagen": maestro.imagen.url,
             "nombre": maestro.nombre,
@@ -217,8 +222,9 @@ class MaestrosPerfilView(View):
 
 class MaestrosFichaMedicaView(View):
     def get(self, request):
+
         if not request.user.is_authenticated:
-            return redirect('administradores_login')
+            return redirect('maestros_login')
 
         tipo_usuario = request.user.tipo_usuario
         if tipo_usuario == 'administrador':
@@ -297,6 +303,10 @@ class MaestrosFichaMedicaView(View):
 
 class MaestroSolicitudCredencialView(View):
     def get(self, request):
+
+        if not request.user.is_authenticated:
+            return redirect('maestros_login')
+
         maestro = Maestro.objects.get(email=request.user.email)
         estado_ultima_solicitud = maestro.obtener_ultima_solicitud()
 
@@ -353,3 +363,36 @@ class MaestroSolicitudCredencialView(View):
         }
 
         return render(request, 'maestros/solicitud/view_solicitud_maestro.html', context=context)
+
+# CORREO RECUPERACION CONTRASEÑA
+class MaestroRestaurarPassword(View):
+
+    def get(self, request):
+        return render(request, 'maestros/restaurar_password/restore.html')
+
+    def post(self, request):
+        email = request.POST.get('email_required')
+        fecha_nacimiento = request.POST.get('date_required')
+        service = Reset()
+
+        try:
+            maestro = Maestro.objects.get(email=email)
+
+            if email.endswith('@uptapachula.edu.mx') and str(maestro.fecha_nacimiento) == fecha_nacimiento:
+                maestro.password = make_password(service.send(email, f"{maestro.nombre} {maestro.apellidos}"))
+                maestro.save()
+                return redirect("maestro_aceptado")
+            else:
+                return redirect('maestro_error')
+        except Exception as e:
+            return redirect('maestro_error')
+
+
+class ErrorView(View):
+    def get(self, request):
+        return render(request, 'maestros/restaurar_password/errors.html')
+
+
+class AceptacionCambio(View):
+    def get(self, request):
+        return render(request, 'maestros//restaurar_password/accepted.html')

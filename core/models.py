@@ -79,6 +79,14 @@ class Credencial(models.Model):
     clave_credencial = models.CharField(max_length=36, unique=True)
     usuario = models.ForeignKey('UsuarioPersonalizado', on_delete=models.PROTECT, null=True,
                                 related_name='credencial_relacionada')
+    def desactivar(self):
+        print('desactivando')
+        self.estado_credencial = 'inactiva'
+        self.save()
+
+    def activar(self):
+        self.estado_credencial = 'activa'
+        self.save()
 
     def __str__(self) -> str:
         return self.clave_credencial
@@ -241,6 +249,14 @@ class Alumno(UsuarioPersonalizado):
     carrera = models.ForeignKey(Carrera, on_delete=models.PROTECT, related_name='carrera')
     gradoDeEstudio = models.ForeignKey(GradoDeEstudio, on_delete=models.PROTECT, related_name='grado_de_estudio')
     is_alumno = models.BooleanField(default=True)
+
+
+    def alumnos_con_solicitudes_pendientes(self):
+        return Alumno.objects.filter(solicitudes__estado='pendiente')
+
+    def __str__(self):
+        return self.nombre
+
 
 
 class Maestro(UsuarioPersonalizado):

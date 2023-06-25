@@ -89,10 +89,11 @@
                             <div class="card-content card-content1">
                                 <div class="contenedor_img">
                                     <p class="nombre_universidad">Universidad Politecnica de Tapachula</p>
-                                    <img src="{% static 'administradores/home/img/LogoUPTap.png' %}" class="profile-pic" alt="">
+                                    <img src="{% static 'administradores/home/img/LogoUPTap.png' %}" class="profile-pic"
+                                         alt="">
                                 </div>
                                 <div class="contenedor_datos">
-                                    <img src="" class="card-img-top imagen">
+                                    <div id="qrcode-2"></div>
                                     <p class="dato">Tipo de sangre: <span
                                             class="dato_remarcado">{{ tipo_sangre }}</span></p>
                                     <p class="dato">Telefono de emergencia: <span
@@ -101,7 +102,8 @@
                                 </div>
 
                                 <div>
-                                    <img src="{% static 'administradores/home/img/dgutyp.png' %}" class="img_asset" alt=""/>
+                                    <img src="{% static 'administradores/home/img/dgutyp.png' %}" class="img_asset"
+                                         alt=""/>
                                 </div>
                             </div>
                         </div>
@@ -113,7 +115,7 @@
                                      class="profile-pic">
                                 <div class="student-info">
                                     <h2 class="student-title">{{ tipo_usuario }}</h2>
-                                    <p class="student-name">{{ nombre }} {{ apellidos  }}</p>
+                                    <p class="student-name">{{ nombre }} {{ apellidos }}</p>
                                     <p class="student-id">{{ especialidad }}</p>
                                 </div>
                             </div>
@@ -130,6 +132,19 @@
         {% endif %}
 
 
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+
+    <script type="text/javascript">
+        const URL = "{% url 'qr' id_usuario=id %}"
+        var qrcode = new QRCode(document.getElementById("qrcode-2"), {
+            text: URL,
+            width: 128,
+            height: 128,
+            colorDark: "#5868bf",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+    </script>
 
 
 

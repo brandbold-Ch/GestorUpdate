@@ -13,5 +13,9 @@ urlpatterns = [
 
     path('solicitud/', views.DirectivoSolicitudCredencialView.as_view(), name='directivos_solicitud_credencial'),
 
+    path('recuperar/', views.DirectivoRestaurarPassword.as_view(), name='directivo_recuperar'),
+    path('error/', views.ErrorView.as_view(), name='directivo_error'),
+    path('aceptado/', views.AceptacionCambio.as_view(), name='directivo_aceptado'),
+
     path('crear/', views.DirectivosCrearView.as_view(), name='directivos_crear'),
 ]

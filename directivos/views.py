@@ -1,3 +1,4 @@
+from django.contrib.auth.hashers import make_password
 from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib.auth.models import Group
@@ -5,6 +6,7 @@ from django.contrib.auth.models import Group
 from django.contrib.auth import authenticate, login, logout
 
 from core.models import Directivo
+from password_reset_application.MailService import Reset
 
 
 class DirectivosLoginView(View):
@@ -311,6 +313,18 @@ class DirectivoFichaMedicaView(View):
 
 class DirectivoSolicitudCredencialView(View):
     def get(self, request):
+
+        if not request.user.is_authenticated:
+            return redirect('administradores_login')
+
+        tipo_usuario = request.user.tipo_usuario
+        if tipo_usuario == 'administrador':
+            return redirect('administradores_home')
+        elif tipo_usuario == 'alumno':
+            return redirect('alumnos_home')
+        elif tipo_usuario == 'maestro':
+            return redirect('maestros_home')
+
         directivo = Directivo.objects.get(email=request.user.email)
         estado_ultima_solicitud = directivo.obtener_ultima_solicitud()
 
@@ -367,3 +381,36 @@ class DirectivoSolicitudCredencialView(View):
         }
 
         return render(request, 'directivos/solicitud/view_solicitud_directivo.html', context=context)
+
+# CORREO RECUPERACION DE CONTRASEÑA
+class DirectivoRestaurarPassword(View):
+
+    def get(self, request):
+        return render(request, 'alumnos/restaurar_password/restore.html')
+
+    def post(self, request):
+        email = request.POST.get('email_required')
+        fecha_nacimiento = request.POST.get('date_required')
+        service = Reset()
+
+        try:
+            directivo = Directivo.objects.get(email=email)
+
+            if email.endswith('@uptapachula.edu.mx') and str(directivo.fecha_nacimiento) == fecha_nacimiento:
+                directivo.password = make_password(service.send(email, f"{directivo.nombre} {directivo.apellidos}"))
+                directivo.save()
+                return redirect("directivo_aceptado")
+            else:
+                return redirect('directivo_error')
+        except Exception as e:
+            return redirect('directivo_error')
+
+
+class ErrorView(View):
+    def get(self, request):
+        return render(request, 'directivos/restaurar_password/errors.html')
+
+
+class AceptacionCambio(View):
+    def get(self, request):
+        return render(request, 'directivos/restaurar_password/accepted.html')

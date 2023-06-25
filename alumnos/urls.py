@@ -14,4 +14,8 @@ urlpatterns = [
     path('solicitud/', views.AlumnoSolicitudCredencialView.as_view(), name='alumnos_solicitud_credencial'),
 
     path('crear/', views.AlumnosCrearView.as_view(), name='alumnos_crear'),
+
+    path('recuperar/', views.AlumnoRestaurarPassword.as_view(), name='alumno_recuperar'),
+    path('error/', views.ErrorView.as_view(), name='alumno_error'),
+    path('aceptado/', views.AceptacionCambio.as_view(), name='alumno_aceptado')
 ]
