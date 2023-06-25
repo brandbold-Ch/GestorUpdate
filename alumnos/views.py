@@ -73,7 +73,8 @@ class AlumnosCredencialView(View):
 
             return render(request, 'alumnos/credencial/view_credencial_administradores.html', context=context)
         context = {
-            "permite_visualizar": permite_visualizar
+            "permite_visualizar": permite_visualizar,
+            "id": alumno.id,
         }
         return render(request, 'alumnos/credencial/view_credencial_administradores.html', context=context)
 
