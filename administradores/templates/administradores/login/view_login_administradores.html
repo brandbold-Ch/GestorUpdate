@@ -9,7 +9,7 @@
           integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
     <link rel="icon" href="{% static 'administradores/login/img/icons8-cвdigo.gif' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-    <title>Loing</title>
+    <title>Login</title>
     <style>
         .btn-info {
             background-color: #17a2b8;
@@ -85,14 +85,14 @@
             <div class="input-group-text bg-info">
                 <img src="{% static 'administradores/login/img/login-icon.svg' %}" alt="username.svg" style="height: 1rem;">
             </div>
-            <input type="text" class="form-control" name="email" placeholder="Nombre de usuario">
+            <input type="text" class="form-control" name="email" placeholder="Nombre de usuario" required>
         </div>
         <div class="input-group mt-5">
             <div class="input-group-text bg-info ">
                 <img src="{% static 'administradores/login/img/password-icon.svg' %}" alt="password.svg"
                      style="height: 1rem;">
             </div>
-            <input type="password" class="form-control" name="password" placeholder="Contraseña">
+            <input type="password" class="form-control" name="password" placeholder="Contraseña" required>
         </div>
         <div class="d-flex justify-content-around mt-2">
             <div class="d-flex align-items-center gap-1">

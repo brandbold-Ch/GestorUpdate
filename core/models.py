@@ -111,6 +111,7 @@ class UsuarioBasePersonalizado(BaseUserManager):
     def create_superuser(self, email, password=None, **campos_extra):
         campos_extra.setdefault('is_staff', True)
         campos_extra.setdefault('is_superuser', True)
+        self
         return self.create_user(email, password, **campos_extra)
 
 
@@ -215,18 +216,18 @@ class UsuarioPersonalizado(AbstractBaseUser, PermissionsMixin):
 
     def crearCredencial(self):
         self.credencial = Credencial.objects.create(usuario=self)
-        self.save()
+        self.credencial.save()
 
     def crearFichaMedica(self, tipo_sangre, alergias, enfermedades_cronicas):
         self.ficha_medica = FichaMedica.objects.create(tipo_sangre=tipo_sangre, alergias=alergias,
                                                        enfermedades_cronicas=enfermedades_cronicas, usuario=self)
-        self.save()
+        self.ficha_medica.save()
 
     def crearContactoEmergencia(self, nombre, numero_telefono):
         self.contacto_emergencia = ContactoEmergencia.objects.create(nombre_contacto_emergencia=nombre,
                                                                      numero_contacto_emergencia=numero_telefono,
                                                                      usuario=self)
-        self.save()
+        self.contacto_emergencia.save()
 
     def requiereLlenarFichaMedica(self):
         if self.ficha_medica:

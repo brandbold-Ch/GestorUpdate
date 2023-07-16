@@ -1,44 +1,66 @@
 from django.contrib.auth.hashers import make_password
 from django.shortcuts import render, redirect
+from django.http import HttpRequest
 from django.template.loader import render_to_string
 from django.views import View
 from django.contrib.auth.models import Group
-
-from django.http import HttpResponse
-
 from django.contrib.auth import authenticate, login, logout
-
 from core.models import Administrador, Alumno, Maestro, Directivo, UsuarioPersonalizado, Cuatrimestre, GradoDeEstudio, \
     Credencial, Carrera
 from django.core.paginator import Paginator
-
 from password_reset_application.MailService import Reset
 
 
-class AdministradoresLoginView(View):
-    def get(self, request):
-        if request.user.is_authenticated:
-            return redirect('administradores_home')
-        return render(request, 'administradores/login/view_login_administradores.html')
 
-    def post(self, request):
+TEMPLATES = [
+    'administradores/login/view_login_administradores.html',
+    'administradores/crear/view_crear_administradores.html',
+    'administradores/home/view_home_administradores.html',
+    'administradores/perfil/view_perfil_administrador.html',
+]
 
-        email = request.POST.get('email')
-        password = request.POST.get('password')
 
-        login_user = authenticate(request, email=email, password=password)
-        if login_user is not None:
-            login(request, login_user)
-
+def parser(user: str, email):
+    model = None
+    match user:
+        case "administrador":
             try:
-                administrador = Administrador.objects.get(email=email)
-                return redirect('administradores_home')
-            except Administrador.DoesNotExist:
-                logout(request)
-                return render(request, 'administradores/login/view_login_administradores.html',
-                              {'error': 'No existe un administrador con ese correo'})
-        return render(request, 'administradores/login/view_login_administradores.html',
-                      {'error': 'Correo o contraseña incorrectos'})
+                model: Administrador = Administrador.objects.get(email=email)
+                return model
+            except:
+                return None
+        case "alumno":
+            try:
+                model = Alumno.objects.get(email=email)
+                return model
+            except:
+                return None
+        case _:
+            pass
+
+
+class AdministradoresLoginView(View):
+
+    def get(self, request: HttpRequest):
+        if request.user.is_authenticated and request.user.is_superuser:
+            return redirect("administradores_home")
+        else:
+            return render(request, TEMPLATES[0])
+
+    def post(self, request: HttpRequest):
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+
+        administrativo: Administrador = parser("administrador", email)
+
+        if administrativo is not None:
+            if administrativo.check_password(password):
+                login(request, authenticate(request, email=email, password=password))
+                return redirect("administradores_home")
+            else:
+                return render(request, TEMPLATES[0], context={"error": "Contraseña inválida"})
+        else:
+            return render(request, TEMPLATES[0], context={"error": "Administrativo inexistente"})
 
 
 class AdministradoresLogoutView(View):
@@ -48,7 +70,6 @@ class AdministradoresLogoutView(View):
 
 
 class AdministradoresCredencialView(View):
-
     def get(self, request):
         print("DirectivosCredencialView")
         if not request.user.is_authenticated:
@@ -122,127 +143,82 @@ class AdministradoresHomeView(View):
             "estado_credencial": administrador.estado_credencial()
 
         }
-
         return render(request, 'administradores/home/view_home_administradores.html', context=context)
 
 
 class AdministradoresCrearView(View):
 
-    # campos:
-    # email, nombre, apellidos, fecha_nacimiento, direccion, numero_telefono, departamento, imagen
+    def get(self, request: HttpRequest):
+        return render(request, TEMPLATES[1])
 
-    def get(self, request):
-        return render(request, 'administradores/crear/view_crear_administradores.html')
+    def post(self, request: HttpRequest):
+        data = {}
 
-    def post(self, request):
-        nombre = request.POST.get('nombres')
-        apellidos = request.POST.get('apellidos')
-        email = request.POST.get('email')
-        numero_telefono = request.POST.get('numero_telefono')
-        direccion = request.POST.get('direccion')
-        fecha_nacimiento = request.POST.get('fecha_nacimiento')
-        departamento = request.POST.get('departamento')
-        password1 = request.POST.get('password1')
-        password2 = request.POST.get('password2')
-        imagen = request.FILES.get('imagen')
+        for key, value in request.POST.items():
+            data[key] = value
 
-        administrador_verificador = Administrador.objects.filter(email=email).exists()
-        if password1 != password2:
-            return render(request, 'administradores/crear/view_crear_administradores.html',
-                          {'error': 'Las contraseñas no coinciden'})
-        if administrador_verificador:
-            print("El correo ya existe")
-            return render(request, 'administradores/crear/view_crear_administradores.html',
-                          {'error': 'Este correo ya esta registrado'})
+        parser: Administrador = Administrador.objects.filter(email=data["email"]).exists()
+        print(parser)
 
-        administrador = Administrador.objects.create(
-            email=email,
-            nombre=nombre,
-            apellidos=apellidos,
-            numero_telefono=numero_telefono,
-            direccion=direccion,
-            fecha_nacimiento=fecha_nacimiento,
-            departamento=departamento,
-            imagen=imagen,
-            tipo_usuario='administrador'
-        )
-        administrador.set_password(password1)
-        administrador.save()
-        administrador.crearCredencial()
-        administrador.hacerAdmin()
-        administrador.save()
+        if parser is False:
+            if data["email"].endswith("@uptapachula.edu.mx"):
+                if data["password"] == data["password_repeat"]:
+                    email = data["email"]
+                    password = data["password"]
+                    data["imagen"] = request.FILES.get("imagen")
+                    data["tipo_usuario"] = 'administrador'
 
-        return render(request, 'administradores/crear/view_crear_administradores.html',
-                      context={'success': 'Administrador creado correctamente, iniciar sesion: '})
+                    del data["password_repeat"]
+                    del data["csrfmiddlewaretoken"]
+                    del data["email"]
+                    del data["password"]
+
+                    administrador = Administrador.objects.create(email=email, password=make_password(password), **data)
+                    administrador.crearCredencial()
+                    administrador.is_administrador = True
+                    administrador.is_staff = True
+                    administrador.save()
+
+                    return render(request, TEMPLATES[1], context={'success': 'Administrador creado correctamente, iniciar sesión: '})
+                else:
+                    return render(request, TEMPLATES[1], context={"error": "Las contraseñas no coinciden"})
+            else:
+                return render(request, TEMPLATES[1], context={"error": "El correo no es institucional"})
+        else:
+            return render(request, TEMPLATES[1], context={"error": "Éste correo ya existe"})
 
 
 class AdministradoresEditarView(View):
-    def get(self, request):
-        if not request.user.is_authenticated:
-            return redirect('administradores_login')
 
-        tipo_usuario = request.user.tipo_usuario
-        if tipo_usuario == 'alumno':
-            return redirect('alumnos_home')
-        elif tipo_usuario == 'directivo':
-            return redirect('directivos_home')
-        elif tipo_usuario == 'maestro':
-            return redirect('maestros_home')
+    def get(self, request: HttpRequest):
+        if request.user.is_authenticated:
+            administrador: Administrador = parser("administrador", request.user.email)
 
-        administrador = Administrador.objects.get(email=request.user.email)
-        context = {
-            "nombre": administrador.nombre,
-            "apellidos": administrador.apellidos,
-            "email": administrador.email,
-            "numero_telefono": administrador.numero_telefono,
-            "direccion": administrador.direccion,
-            "fecha_nacimiento": administrador.fecha_nacimiento,
-            "departamento": administrador.departamento,
-            "estado_credencial": administrador.estado_credencial(),
-            "imagen": administrador.imagen.url,
-        }
+            return render(request, TEMPLATES[3], context={"admin": administrador})
+        else:
+            return redirect("administradores_login")
 
-        return render(request, 'administradores/perfil/view_perfil_administrador.html', context=context)
+    def post(self, request: HttpRequest):
+        if request.user.is_authenticated:
+            administrador: Administrador = parser("administrador", request.user.email)
+            imagen = administrador.imagen
+            try:
 
-    def post(self, request):
-        nombre = request.POST.get('nombre')
-        apellidos = request.POST.get('apellidos')
-        email = request.POST.get('email')
-        numero_telefono = request.POST.get('numero_telefono')
-        direccion = request.POST.get('direccion')
-        fecha_nacimiento = request.POST.get('fecha_nacimiento')
-        departamento = request.POST.get('departamento')
-        imagen = request.FILES.get('imagen')
-        admin_image = request.POST.get('admin_image')
-        print(admin_image)
+                for key, value in request.POST.items():
+                    setattr(administrador, key, value)
 
-        administrador = Administrador.objects.get(email=request.user.email)
-        administrador.nombre = nombre
-        administrador.apellidos = apellidos
-        administrador.email = email
-        administrador.numero_telefono = numero_telefono
-        administrador.direccion = direccion
-        administrador.fecha_nacimiento = fecha_nacimiento
-        administrador.departamento = departamento
-        print(imagen)
-        if imagen is not None:
-            administrador.imagen = imagen
-        administrador.save()
+                if request.FILES.get("imagen") is not None:
+                    administrador.imagen = request.FILES.get("imagen")
+                else:
+                    administrador.imagen = imagen
 
-        context = {
-            "nombre": administrador.nombre,
-            "apellidos": administrador.apellidos,
-            "email": administrador.email,
-            "numero_telefono": administrador.numero_telefono,
-            "direccion": administrador.direccion,
-            "fecha_nacimiento": administrador.fecha_nacimiento,
-            "departamento": administrador.departamento,
-            "estado_credencial": administrador.estado_credencial(),
-            "imagen": administrador.imagen.url,
-            "mensaje": "Datos actualizados correctamente"
-        }
+                administrador.save()
 
-        return render(request, 'administradores/perfil/view_perfil_administrador.html', context=context)
+                return render(request, TEMPLATES[3], context={"mensaje": "Guardado correctamente", "admin": administrador})
+            except:
+                return render(request, TEMPLATES[3], context={"error": "Hubo un error en tus datos", "admin": administrador})
+        else:
+            return redirect("administradores_login")
 
 
 class AdministradoresFichaMedicaView(View):
@@ -413,103 +389,11 @@ class RechazarSolicitud(View):
         usuario.rechazar_solicitud()
         return redirect('administradores_alumnos')
 
-
-# ---------------------------------------------------------------------------------------------
-
-
-# Vistas de administración de directivos
-
-class PanelAdministradorDirectivosSolicitudes(View):
-
-    def get(self, request):
-        directivos_pendientes = Directivo.objects.filter(solicitudes__estado='pendiente').order_by(
-            'solicitudes__fecha_solicitud')
-
-        if directivos_pendientes.__len__() == 0:
-            context = {
-                "no_solicitudes": "No hay solicitudes pendientes"
-            }
-        else:
-            context = {
-                "administradores_solicitudes_pendientes": directivos_pendientes
-            }
-
-        return render(request,
-                      'administradores/PanelAdministracion/administracion_directivos/solicitudes/panel_solicitudes_administracion.html',
-                      context=context)
-
-
-class PanelAdministradorDirectivosDatos(View):
-    def get(self, request):
-        directivos = Directivo.objects.all()
-
-        context = {
-            'usuarios': directivos
-        }
-
-        return render(request,
-                      'administradores/PanelAdministracion/administracion_directivos/datos/panel_datos_administracion.html',
-                      context=context)
-
-    def post(self, request):
-        try:
-            directivo = Directivo.objects.get(email=request.POST['email'])
-        except Directivo.DoesNotExist:
-            return render(request,
-                          'administradores/PanelAdministracion/administracion_directivos/datos/panel_datos_administracion.html',
-                          context={'error': 'No existe un alumno con esa matrícula'})
-
-        context = {
-            'usuario': directivo
-        }
-
-        return render(request,
-                      'administradores/PanelAdministracion/administracion_directivos/datos/panel_datos_administracion.html',
-                      context=context)
-
-
-class PanelAdministradorDirectivoDetalle(View):
-    def get(self, request, id):
-        usuario = Directivo.objects.get(id=id)
-        context = {
-            'usuario': usuario
-        }
-        return render(request,
-                      'administradores/PanelAdministracion/administracion_directivos/detalles/panel_detalles_administracion.html',
-                      context=context)
-
-    def post(self, request, id):
-        directivo = Directivo.objects.get(id=id)
-
-        directivo.nombre = request.POST.get('nombre')
-        directivo.apellidos = request.POST.get('apellidos')
-        directivo.email = request.POST.get('email')
-        directivo.numero_telefono = request.POST.get('numero_telefono')
-        directivo.fecha_nacimiento = request.POST.get('fecha_nacimiento')
-        directivo.puesto = request.POST.get('puesto')
-
-        directivo.save()
-
-        mensaje = 'Los datos del directivo se han actualizado correctamente.'
-
-        context = {
-            'usuario': directivo,
-            'mensaje': mensaje
-        }
-
-        return render(request,
-                      'administradores/PanelAdministracion/administracion_directivos/detalles/panel_detalles_administracion.html',
-                      context=context)
-
-
-# Fin de vistas de administración de directivos
-
 # ---------------------------------------------------------------------------------------------
 
 # Vistas de alumnos
 
 class PanelAdministradorAlumnosSolicitudes(View):
-
     def get(self, request):
         alumnos_pendientes = Alumno.objects.filter(solicitudes__estado='pendiente').order_by(
             'solicitudes__fecha_solicitud')
@@ -526,7 +410,6 @@ class PanelAdministradorAlumnosSolicitudes(View):
         return render(request,
                       'administradores/PanelAdministracion/administracion_alumnos/solicitudes/panel_solicitudes_alumnos.html',
                       context=context)
-
 
 class PanelAdministradorAlumnosDatos(View):
     template_name = 'administradores/PanelAdministracion/administracion_alumnos/datos/panel_datos_alumnos.html'
@@ -614,7 +497,7 @@ class PanelAdministradorAlumnoDetalle(View):
 class PanelAdministradoresDesactivarCredencial(View):
 
     def get(self, request, id):
-        print('dentro de la vista desactivar')
+        print("el id es:", id)
         credencial = Credencial.objects.get(id=id)
         credencial.desactivar()
 
@@ -635,6 +518,7 @@ class PanelAministradoresActivarCredencial(View):
     def get(self, request, id):
         credencial = Credencial.objects.get(id=id)
         credencial.activar()
+        print(id)
 
         tipo_usuario = UsuarioPersonalizado.objects.get(id=credencial.usuario_id).tipo_usuario
 
@@ -773,9 +657,7 @@ class PanelAdministradorAdministradorsDatos(View):
             'usuarios': administradores
         }
 
-        return render(request,
-                      'administradores/PanelAdministracion/administracion_administradores/datos/panel_datos_administrador.html',
-                      context=context)
+        return render(request, 'administradores/PanelAdministracion/administracion_administradores/datos/panel_datos_administrador.html', context=context)
 
     def post(self, request):
         try:

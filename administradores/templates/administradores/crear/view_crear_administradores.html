@@ -37,7 +37,7 @@
 
     {% if success  %}
         <div class="alert alert-success" role="alert">
-            {{ success }} <a href="{% url 'administradores_login' %}">iniciar sesión</a>
+            {{ success }} <a href="{% url 'administradores_login' %}">Iniciar sesión</a>
         </div>
     {% endif %}
 
@@ -45,12 +45,11 @@
     <h1 class="display-5 text-primaty text-center text-white"><b>Registro administrador</b></h1>
     <div class="col-6">
         <label for="inputName" class="form-labeñ text-white">Nombre &#58</label>
-        <input name="nombres" required type="text" class="form-control" id="inputName" placeholder="Escribe tu nombre">
+        <input name="nombre" required type="text" class="form-control" id="inputName" placeholder="Escribe tu nombre">
     </div>
     <div class="col-6">
         <label for="inputLast" class="form-labeñ text-white">Apellidos &#58</label>
-        <input name="apellidos" required type="text" class="form-control" id="inputName"
-               placeholder="Escribe tus apellidos">
+        <input name="apellidos" required type="text" class="form-control" id="inputName" placeholder="Escribe tus apellidos">
     </div>
     <div class="col-6">
         <label for="emailInput" class="form-label text-white">Email &#58 </label>
@@ -85,27 +84,20 @@
 
 
     <div class="col-6">
-        <label for="password1" class="form-label text-white">Contrasena &#58</label>
-        <input id="password1" class="form-control" type="password" name="password1" required/>
+        <label for="password" class="form-label text-white">Contrasena &#58</label>
+        <input id="password" class="form-control" type="password" name="password" required/>
 
     </div>
 
     <div class="col-6">
-        <label for="password2" class="form-label text-white">Repite tu contrasena &#58</label>
-        <input id="password2" class="form-control" type="password" name="password2" required/>
+        <label for="password_repeat" class="form-label text-white">Repite tu contraseña &#58</label>
+        <input id="password_repeat" class="form-control" type="password" name="password_repeat" required/>
     </div>
 
 
     <div class="mb-3">
         <label for="foto" class="form-label">Foto personal:</label>
         <input class="form-control" type="file" id="imagen" name="imagen" required>
-    </div>
-
-    <div class="col-12">
-        <div class="form-check">
-            <input required type="checkbox" id="checkTerms" class="form-checkinput">
-            <label for="checkTerms" class="form-checkinput text-white">Acepto los terminos y condiciones</label>
-        </div>
     </div>
     <div class="col-12 mb-4">
         <center>

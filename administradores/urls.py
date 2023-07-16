@@ -28,13 +28,6 @@ urlpatterns = [
     path('panel_administrador/activar_credencial/<int:id>', views.PanelAministradoresActivarCredencial.as_view(),
          name='administradores_activar_credencial'),
 
-    path('panel_administrador/directivos/', views.PanelAdministradorDirectivosSolicitudes.as_view(),
-         name='administradores_directivos'),
-    path('panel_administrador/directivos/lista/', views.PanelAdministradorDirectivosDatos.as_view(),
-         name='administradores_directivos_lista'),
-    path('panel_administrador/directivos/detalle/<int:id>', views.PanelAdministradorDirectivoDetalle.as_view(),
-         name='administradores_directivos_detalle'),
-
     path('panel_administrador/maestros/', views.PanelAdministradorMaestrosSolicitudes.as_view(),
          name='administradores_maestros'),
     path('panel_administrador/maestros/lista/', views.PanelAdministradorMaestrosDatos.as_view(),

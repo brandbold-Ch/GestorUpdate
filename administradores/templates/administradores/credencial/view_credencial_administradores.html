@@ -73,6 +73,17 @@
     <div class="contenedor">
 
         {% if permite_visualizar == 'activa' %}
+            <script type="text/javascript">
+            const URL = "{% url 'qr' id_usuario=id %}"
+            var qrcode = new QRCode(document.getElementById("qrcode-2"), {
+            text: URL,
+            width: 128,
+            height: 128,
+            colorDark: "#5868bf",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+    </script>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 <strong>¡Felicidades!</strong> Ya puedes descargar tu tarjeta de estudiante.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -133,19 +144,4 @@
 
 
     <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
-
-    <script type="text/javascript">
-        const URL = "{% url 'qr' id_usuario=id %}"
-        var qrcode = new QRCode(document.getElementById("qrcode-2"), {
-            text: URL,
-            width: 128,
-            height: 128,
-            colorDark: "#5868bf",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.H
-        });
-    </script>
-
-
-
 {% endblock %}

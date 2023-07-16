@@ -7,9 +7,7 @@ urlpatterns = [
     path('administradores/', include('administradores.urls')),
     path('directivos/', include('directivos.urls')),
     path('maestros/', include('maestros.urls')),
-
     path('admin/', admin.site.urls),
-
     path('', include('core.urls')),
 ]
 

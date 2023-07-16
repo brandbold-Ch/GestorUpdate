@@ -60,59 +60,52 @@
             <div class="col-12 d-flex justify-content-center">
                 <div class="align-content-center flex">
                     <label for="inputAdminImage" class="text-center">
-                        <img src="{{ imagen }}" alt="Imagen del administrador" id="adminImage"
-                             class="card-img-top rounded-circle imagen">
+                        <img src="{{ admin.imagen.url }}" alt="Imagen del administrador" id="adminImage" class="card-img-top rounded-circle imagen">
                     </label>
-                    <input name="imagen" type="file" accept="image/*" id="inputAdminImage" style="display: none;"
-                           onchange="loadNewImage(event)">
+                    <input name="imagen" type="file" accept="image/*" id="inputAdminImage" style="display: none;" onchange="loadNewImage(event)">
                 </div>
             </div>
-
-
             <div class="col-6">
                 <label for="inputName" class="form-label text-white">Nombre:</label>
                 <input name="nombre" required type="text" class="form-control" id="inputName"
-                       value="{{ nombre }}">
+                       value="{{ admin.nombre }}">
             </div>
 
             <div class="col-6">
                 <label for="inputLast" class="form-label text-white">Apellidos:</label>
                 <input name="apellidos" required type="text" class="form-control" id="inputName"
-                       value="{{ apellidos }}">
+                       value="{{ admin.apellidos }}">
             </div>
 
             <div class="col-6">
                 <label for="inputEmail" class="form-label text-white">Correo electrónico:</label>
                 <input name="email" required type="email" class="form-control" id="inputEmail"
-                       value="{{ email }}">
+                       value="{{ admin.email }}" readonly>
             </div>
 
             <div class="col-6">
                 <label for="inputPhone" class="form-label text-white">Número de teléfono:</label>
                 <input name="numero_telefono" required type="tel" class="form-control" id="inputPhone"
-                       value="{{ numero_telefono }}">
+                       value="{{ admin.numero_telefono }}">
             </div>
 
             <div class="col-12">
                 <label for="inputAddress" class="form-label text-white">Dirección:</label>
                 <input name="direccion" required type="text" class="form-control" id="inputAddress"
-                       value="{{ direccion }}">
+                       value="{{ admin.direccion }}">
             </div>
 
             <div class="col-6">
-                <label for="inputBirthdate" class="form-label text-white">Fecha de
-                    nacimiento:</label>
+                <label for="inputBirthdate" class="form-label text-white">Fecha de nacimiento:</label>
                 <input name="fecha_nacimiento" required type="date" class="form-control" id="inputBirthdate"
-                       value="{{ fecha_nacimiento }}">
+                       value="{{ admin.fecha_nacimiento }}">
             </div>
 
             <div class="col-6">
                 <label for="inputDepartment" class="form-label text-white">Departamento:</label>
                 <input name="departamento" required type="text" class="form-control" id="inputDepartment"
-                       value="{{ departamento }}">
+                       value="{{ admin.departamento }}">
             </div>
-
-
             <div class="col-12">
                 <center>
                     <button type="submit" class="btn btn-primary btn-lg btn-pulse">
@@ -121,7 +114,7 @@
 
 
                     <a href="{% url 'cambiar_password_admin' %}" class="ms-5 text-white btn btn-primary">Actualizar
-                        contrasena</a>
+                        contraseña</a>
                 </center>
             </div>
         </form>
